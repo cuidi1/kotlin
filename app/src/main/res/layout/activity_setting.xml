@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootSettingLayout"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp">
+    <TextView
+        android:id="@+id/tvSettingInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="设置页"
+        android:textSize="18sp"/>
+    <Button
+        android:id="@+id/bthAgreeAndBack"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="同意隐私兵返回"/>
+    <Button
+        android:id="@+id/bthCancelAndBack"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="取消隐私并返回"/>
+</LinearLayout>
