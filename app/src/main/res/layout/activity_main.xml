@@ -5,6 +5,10 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="24dp">
+    <FrameLayout
+        android:id="@+id/infoFragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
     <TextView
         android:id="@+id/tvSdkInfo"
         android:layout_width="match_parent"
@@ -33,4 +37,5 @@
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
+
 </LinearLayout>

@@ -6,7 +6,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class SdkLogAdapter(private val logList: List<String>): RecyclerView.Adapter<SdkLogAdapter.LogViewHolder>() {
+class SdkLogAdapter: RecyclerView.Adapter<SdkLogAdapter.LogViewHolder>() {
+    private val logList = mutableListOf<String>()
     //每行view的持有者
     class LogViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvLogItem: TextView = itemView.findViewById(R.id.tvLogItem)
@@ -27,5 +28,11 @@ class SdkLogAdapter(private val logList: List<String>): RecyclerView.Adapter<Sdk
     //这个列表一共有多少行
     override fun getItemCount(): Int {
         return logList.size
+    }
+
+    fun updateLogs(newLogs:List<String>) {
+        logList.clear()
+        logList.addAll(newLogs)
+        notigyDataSetChanged()
     }
 }

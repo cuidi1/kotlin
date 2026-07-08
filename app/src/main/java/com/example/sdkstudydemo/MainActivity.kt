@@ -44,11 +44,13 @@ class MainActivity : AppCompatActivity() {
         refreshSdkInfo()
         buttonAgree.setOnClickListener {
             MySdk.setUserConsent(true)
-            refreshSdkInfo()
+            SdkLogger.d("点击同意隐私协议")
+            refreshAll()
         }
         buttonCancel.setOnClickListener {
             MySdk.setUserConsent(false)
-            refreshSdkInfo()
+            SdkLogger.d("点击取消隐私授权")
+            refreshAll()
         }
         btnSetting.setOnClickListener {
             val intent = Intent(this, SettingActivity::class.java)
@@ -57,7 +59,10 @@ class MainActivity : AppCompatActivity() {
             settingLauncher.launch(intent)
 
         }
-        supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer,sdkLogFragment).commit()
+        supportFragmentManager.beginTransaction()
+                .replace(R.id.infoFragmentContaioner,sdkInfoFragment)
+                .replace(R.id.fragmentContainer,sdkLogFragment)
+                .commit()
     }
 
     override fun onStart(){
@@ -104,5 +109,10 @@ class MainActivity : AppCompatActivity() {
     }
     private fun refreshSdkInfo() {
         textView.text = getSdkInfoText()
+    }
+
+    private fun refreshAll(){
+        sdkInfoFragment.refreshSdkInfo()
+        sdkLogFragment.refreshLogs()
     }
 }

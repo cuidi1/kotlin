@@ -9,6 +9,8 @@ import com.example.sdkstudydemo.sdk.SdkLogger
 
 class SdkLogFragment : Fragment(R.layout.fragment_sdk_log) {
     private lateinit var rvSdkLog: RecyclerView
+
+    private val logAdapter = SdkLogAdapter()
     private val logs = listOf(
         "SDK 初始化成功",
         "用户同意隐私协议",
@@ -31,6 +33,26 @@ class SdkLogFragment : Fragment(R.layout.fragment_sdk_log) {
         //告诉列表怎么排列
         rvSdkLog.layoutManager = LinearLayoutManager(requireContext())
         //把日志数据交给 Adapter，让 Adapter 显示到 RecyclerView 上。
-        rvSdkLog.adapter = SdkLogAdapter(logs)
+        rvSdkLog.adapter = logAdapter
+    }
+
+    override fun onResume() {
+        super.onResume()
+        SdkLogger.d("SdkLogFragment onResume")
+        refreshLogs()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        SdkLogger.d("SdkLogFragment onDestroyView")
+    }
+
+    fun refreshLogs() {
+        if (!::rvSdkLog.isInitialized) {
+            return
+        }
+
+        val logs = SdkLogger.getLogs()
+        logAdapter.updateLogs(logs)
     }
 }
