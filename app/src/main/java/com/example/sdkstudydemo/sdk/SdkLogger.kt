@@ -14,6 +14,7 @@ object SdkLogger {
             return;
         }
         Log.d(TAG, message)
+        addLogs(TAG,message)
     }
 
     fun e(message: String, throwable: Throwable? = null){
@@ -30,7 +31,7 @@ object SdkLogger {
     fun clearLogs(){
         logList.clear()
     }
-    private fun addLogs(leve: String, message: String) {
+    private fun addLogs(level: String, message: String) {
         val log = "[$level]$message"
         logList.add(log)
     }

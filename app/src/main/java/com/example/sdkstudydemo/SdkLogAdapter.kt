@@ -33,6 +33,6 @@ class SdkLogAdapter: RecyclerView.Adapter<SdkLogAdapter.LogViewHolder>() {
     fun updateLogs(newLogs:List<String>) {
         logList.clear()
         logList.addAll(newLogs)
-        notigyDataSetChanged()
+        notifyDataSetChanged()
     }
 }

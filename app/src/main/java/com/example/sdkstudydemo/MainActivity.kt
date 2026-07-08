@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
 
         }
         supportFragmentManager.beginTransaction()
-                .replace(R.id.infoFragmentContaioner,sdkInfoFragment)
+                .replace(R.id.infoFragmentContainer,sdkInfoFragment)
                 .replace(R.id.fragmentContainer,sdkLogFragment)
                 .commit()
     }
