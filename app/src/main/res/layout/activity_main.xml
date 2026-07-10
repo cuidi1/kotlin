@@ -32,7 +32,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="进入设置页"/>
-
+    <Button
+        android:id = "@+id/bthAgree"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="同意隐私协议"/>
+    <Button
+        android:id="@+id/btnTrackEvent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="模拟事件上报" />
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"

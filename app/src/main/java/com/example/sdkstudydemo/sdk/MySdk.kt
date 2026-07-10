@@ -96,6 +96,36 @@ object MySdk {
         }
     }
 
+//    params 是一个 Map，key 是 String，value 也是 String。
+//    如果调用方不传 params，就默认是空 Map。
+
+    fun trackEvent(eventName: String, params: Map<String, Any> = emptyMap()): SdkResult{
+        if(!initialized) {
+            SdkLogger.e("事件上报失败：SDK尚未初始化")
+            return createResult(SdkErrorCode.SDK_NOT_INITIALIZED)
+        }
+        //isBlank()表示字符串为空或者只包含空格
+        if(eventName.isBlank()) {
+            SdkLogger.e("事件上报失败：事件名称不能为空")
+            return createResult(SdkErrorCode.INVALID_EVENT_NAME)
+        }
+
+        if(!hasUserConsent()){
+            SdkLogger.e("事件上报失败：用户未同意隐私协议")
+            return createResult(SdkErrorCode.USER_CONSENT_REQUIRED)
+        }
+        SdkLogger.d("事件上报成功：$eventName");
+        return createResult(SdkErrorCode.SUCCESS)
+    }
+
+    private fun createResult(errorCode: SdkErrorCode): SdkResult {
+        return SdkResult(
+            success = errorCode == SdkErrorCode.SUCCESS,
+            code = errorCode.code,
+            message = errorCode.message
+        )
+    }
+
     private fun log(message: String) {
         if (::sdkConfig.isInitialized && !sdkConfig.enableLog) {
             return
@@ -106,4 +136,6 @@ object MySdk {
     override fun toString(): String {
         return "MySdk(TAG='$TAG', appContext=$appContext, sdkConfig=$sdkConfig, initialized=$initialized)"
     }
+
+
 }

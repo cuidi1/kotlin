@@ -15,7 +15,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonAgree: Button
     private lateinit var buttonCancel: Button
     private lateinit var btnSetting: Button
-
+    private lateinit var btnTrackEvent: Button
     private val sdkInfoFragment = SdkInfoFragment()
     private val sdkLogFragment = SdkLogFragment()
     private val settingLauncher = registerForActivityResult(
@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
         buttonAgree = findViewById(R.id.bthAgree)
         buttonCancel = findViewById(R.id.bthCancel)
         btnSetting = findViewById(R.id.bthSetting)
+        btnTrackEvent = findViewById(R.id.btnTrackEvent)
         refreshSdkInfo()
         buttonAgree.setOnClickListener {
             MySdk.setUserConsent(true)
@@ -58,6 +59,13 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("current_user_consent", MySdk.hasUserConsent())
             settingLauncher.launch(intent)
 
+        }
+        btnTrackEvent.setOnClickListener {
+            val result = MySdk.trackEvent(
+                eventName = "click_demo_button",
+                params = mapOf("page" to "MainActivity"))
+            SdkLogger.d("上报结果：code=${result.code}, message=${result.message}")
+            refreshAll()
         }
         supportFragmentManager.beginTransaction()
                 .replace(R.id.infoFragmentContainer,sdkInfoFragment)
