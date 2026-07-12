@@ -46,10 +46,16 @@
         android:layout_height="wrap_content"
         android:text="模拟事件上报" />
     <Button
+        android:id="@+id/btnTrackEventByBundle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Bundle方式上报事件" />
+    <Button
         android:id="@+id/btnRequestCameraPermission"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="请求相机权限" />
+
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"

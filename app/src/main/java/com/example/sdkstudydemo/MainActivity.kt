@@ -20,6 +20,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnSetting: Button
     private lateinit var btnTrackEvent: Button
     private lateinit var btnRequestCameraPermission: Button
+    private lateinit var btnTrackEventByBundle: Button
     private val sdkInfoFragment = SdkInfoFragment()
     private val sdkLogFragment = SdkLogFragment()
     private val settingLauncher = registerForActivityResult(
@@ -57,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         btnSetting = findViewById(R.id.bthSetting)
         btnTrackEvent = findViewById(R.id.btnTrackEvent)
         btnRequestCameraPermission = findViewById(R.id.btnRequestCameraPermission)
+        btnTrackEventByBundle = findViewById(R.id.btnTrackEventByBundle)
         refreshSdkInfo()
         buttonAgree.setOnClickListener {
             MySdk.setUserConsent(true)
@@ -84,6 +86,17 @@ class MainActivity : AppCompatActivity() {
         }
         btnRequestCameraPermission.setOnClickListener {
             requestCameraPermission()
+        }
+        btnTrackEventByBundle.setOnClickListener {
+            val bundle = Bundle()
+            bundle.putString("button", "bundle_track")
+            bundle.putString("from", "Day14")
+            val result = MySdk.trackEvent(
+                eventName = "click_demo_button",
+                bundle = bundle)
+            SdkLogger.d("上报结果：code=${result.code}, message=${result.message}")
+            refreshAll()
+
         }
         supportFragmentManager.beginTransaction()
                 .replace(R.id.infoFragmentContainer,sdkInfoFragment)

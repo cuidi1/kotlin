@@ -1,6 +1,7 @@
 package com.example.sdkstudydemo.sdk
 
 import android.content.Context
+import android.os.Bundle
 import android.util.Log
 
 object MySdk {
@@ -99,7 +100,7 @@ object MySdk {
 //    params 是一个 Map，key 是 String，value 也是 String。
 //    如果调用方不传 params，就默认是空 Map。
 
-    fun trackEvent(eventName: String, params: Map<String, Any> = emptyMap()): SdkResult{
+    fun trackEvent(eventName: String, params: Map<String, String> = emptyMap()): SdkResult{
         if(!initialized) {
             SdkLogger.e("事件上报失败：SDK尚未初始化")
             return createResult(SdkErrorCode.SDK_NOT_INITIALIZED)
@@ -114,10 +115,35 @@ object MySdk {
             SdkLogger.e("事件上报失败：用户未同意隐私协议")
             return createResult(SdkErrorCode.USER_CONSENT_REQUIRED)
         }
+        val event = SdkEvent(
+            eventName = eventName,
+            params = params,
+            appId = sdkConfig.appId,
+            environment = sdkConfig.environment,
+            sdkVerSion = getVersion(),
+            timestamp = System.currentTimeMillis()
+        )
+        SdkLogger.d("创建事件对象：$event")
         SdkLogger.d("事件上报成功：$eventName");
         return createResult(SdkErrorCode.SUCCESS)
     }
+    fun trackEvent(
+        eventName: String,
+        bundle: Bundle
+    ): SdkResult{
+        val params = bundleToStringMap(bundle)
+        return trackEvent(eventName, params)
+    }
 
+    private fun bundleToStringMap(bundle: Bundle): Map<String,String>{
+        val map = mutableMapOf<String,String>()
+        for(key in bundle.keySet()) {
+            val value = bundle.get(key)
+            map[key] = value?.toString() ?: ""
+
+        }
+        return map
+    }
     private fun createResult(errorCode: SdkErrorCode): SdkResult {
         return SdkResult(
             success = errorCode == SdkErrorCode.SUCCESS,
