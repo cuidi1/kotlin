@@ -1,14 +1,17 @@
 package com.example.sdkstudydemo
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.sdkstudydemo.sdk.MySdk
 import com.example.sdkstudydemo.sdk.SdkLogger
+import java.util.jar.Manifest
 
 class MainActivity : AppCompatActivity() {
     private lateinit var textView: TextView
@@ -16,6 +19,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonCancel: Button
     private lateinit var btnSetting: Button
     private lateinit var btnTrackEvent: Button
+    private lateinit var btnRequestCameraPermission: Button
     private val sdkInfoFragment = SdkInfoFragment()
     private val sdkLogFragment = SdkLogFragment()
     private val settingLauncher = registerForActivityResult(
@@ -31,6 +35,16 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
+    private val cameraPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()){
+        granted ->
+        if(granted) {
+            SdkLogger.d("相机权限申请成功")
+        }else{
+            SdkLogger.d("相机权限被用户拒绝")
+        }
+        refreshAll()
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         SdkLogger.d("cdMainActivity onCreate")
@@ -42,6 +56,7 @@ class MainActivity : AppCompatActivity() {
         buttonCancel = findViewById(R.id.bthCancel)
         btnSetting = findViewById(R.id.bthSetting)
         btnTrackEvent = findViewById(R.id.btnTrackEvent)
+        btnRequestCameraPermission = findViewById(R.id.btnRequestCameraPermission)
         refreshSdkInfo()
         buttonAgree.setOnClickListener {
             MySdk.setUserConsent(true)
@@ -66,6 +81,9 @@ class MainActivity : AppCompatActivity() {
                 params = mapOf("page" to "MainActivity"))
             SdkLogger.d("上报结果：code=${result.code}, message=${result.message}")
             refreshAll()
+        }
+        btnRequestCameraPermission.setOnClickListener {
+            requestCameraPermission()
         }
         supportFragmentManager.beginTransaction()
                 .replace(R.id.infoFragmentContainer,sdkInfoFragment)
@@ -122,5 +140,23 @@ class MainActivity : AppCompatActivity() {
     private fun refreshAll(){
         sdkInfoFragment.refreshSdkInfo()
         sdkLogFragment.refreshLogs()
+    }
+    private fun requestCameraPermission(){
+        if(!MySdk.hasUserConsent()){
+            SdkLogger.d("用户未同意隐私协议，无法请求相机权限")
+            refreshAll()
+            return
+        }
+        val hashPermission = ContextCompat.checkSelfPermission(
+            this, android.Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED
+
+        if(hashPermission){
+            SdkLogger.d("相机权限已申请")
+            refreshAll()
+            return
+        }
+        SdkLogger.d("开始申请相机权限")
+        cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
     }
 }

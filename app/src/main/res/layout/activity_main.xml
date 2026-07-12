@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainScrollView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+
+<LinearLayout
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -15,11 +22,6 @@
         android:layout_height="wrap_content"
         android:text="SDK信息"
         android:textSize="16sp"/>
-    <Button
-        android:id="@+id/bthAgree"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="同意隐私协议"/>
 
     <Button
         android:id="@+id/bthCancel"
@@ -37,14 +39,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="同意隐私协议"/>
+
     <Button
         android:id="@+id/btnTrackEvent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="模拟事件上报" />
+    <Button
+        android:id="@+id/btnRequestCameraPermission"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="请求相机权限" />
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
 </LinearLayout>
+</androidx.core.widget.NestedScrollView>
