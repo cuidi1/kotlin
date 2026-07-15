@@ -21,6 +21,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnTrackEvent: Button
     private lateinit var btnRequestCameraPermission: Button
     private lateinit var btnTrackEventByBundle: Button
+    private lateinit var tvStateCount: TextView
+    private lateinit var btnIncreaseCount: Button
+    private var clickCount = 0
     private val sdkInfoFragment = SdkInfoFragment()
     private val sdkLogFragment = SdkLogFragment()
     private val settingLauncher = registerForActivityResult(
@@ -59,7 +62,15 @@ class MainActivity : AppCompatActivity() {
         btnTrackEvent = findViewById(R.id.btnTrackEvent)
         btnRequestCameraPermission = findViewById(R.id.btnRequestCameraPermission)
         btnTrackEventByBundle = findViewById(R.id.btnTrackEventByBundle)
+        tvStateCount = findViewById(R.id.tvStateCount)
+        btnIncreaseCount = findViewById(R.id.btnIncreaseCount)
         refreshSdkInfo()
+        btnIncreaseCount.setOnClickListener {
+            clickCount++
+            SdkLogger.d("页面状态计数增加：$clickCount")
+            refreshStateCount()
+            refreshAll()
+        }
         buttonAgree.setOnClickListener {
             MySdk.setUserConsent(true)
             SdkLogger.d("点击同意隐私协议")
@@ -98,12 +109,15 @@ class MainActivity : AppCompatActivity() {
             refreshAll()
 
         }
+        clickCount = savedInstanceState?.getInt(Companion.KEY_CLICK_COUNT, 0)?:0
         supportFragmentManager.beginTransaction()
                 .replace(R.id.infoFragmentContainer,sdkInfoFragment)
                 .replace(R.id.fragmentContainer,sdkLogFragment)
                 .commit()
     }
-
+    private fun refreshStateCount(){
+        tvStateCount.text = "页面状态计数：$clickCount"
+    }
     override fun onStart(){
         super.onStart()
         SdkLogger.d("cdMainCdActivity onStart")
@@ -130,6 +144,13 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         SdkLogger.d("cdMainCdActivity onDestroy")
     }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(Companion.KEY_CLICK_COUNT,clickCount)
+        SdkLogger.d("onSaveInstanceState 保存页面状态：clickCount=$clickCount")
+    }
+
     private fun getSdkInfoText(): String {
         return """
             SDK 学习 Demo

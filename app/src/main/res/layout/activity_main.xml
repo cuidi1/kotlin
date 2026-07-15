@@ -12,6 +12,19 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="24dp">
+    <TextView
+        android:id="@+id/tvStateCount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="页面状态计数：0"
+        android:textSize="16sp"
+        android:paddingTop="12dp"
+        android:paddingBottom="8dp"/>
+    <Button
+        android:id="@+id/btnIncreaseCount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="增加页面状态计数"/>
     <FrameLayout
         android:id="@+id/infoFragmentContainer"
         android:layout_width="match_parent"
