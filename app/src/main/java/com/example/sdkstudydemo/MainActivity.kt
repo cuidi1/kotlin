@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import com.example.sdkstudydemo.sdk.MySdk
 import com.example.sdkstudydemo.sdk.SdkLogger
 import java.util.jar.Manifest
@@ -22,8 +23,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnRequestCameraPermission: Button
     private lateinit var btnTrackEventByBundle: Button
     private lateinit var tvStateCount: TextView
+    private lateinit var mainViewModel: MainViewModel
     private lateinit var btnIncreaseCount: Button
-    private var clickCount = 0
+//    private var clickCount = 0
     private val sdkInfoFragment = SdkInfoFragment()
     private val sdkLogFragment = SdkLogFragment()
     private val settingLauncher = registerForActivityResult(
@@ -64,10 +66,12 @@ class MainActivity : AppCompatActivity() {
         btnTrackEventByBundle = findViewById(R.id.btnTrackEventByBundle)
         tvStateCount = findViewById(R.id.tvStateCount)
         btnIncreaseCount = findViewById(R.id.btnIncreaseCount)
+        mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
         refreshSdkInfo()
         btnIncreaseCount.setOnClickListener {
-            clickCount++
-            SdkLogger.d("页面状态计数增加：$clickCount")
+            mainViewModel.clickCount++;
+//            clickCount++
+//            SdkLogger.d("页面状态计数增加：$clickCount")
             refreshStateCount()
             refreshAll()
         }
@@ -109,14 +113,15 @@ class MainActivity : AppCompatActivity() {
             refreshAll()
 
         }
-        clickCount = savedInstanceState?.getInt(Companion.KEY_CLICK_COUNT, 0)?:0
+//        clickCount = savedInstanceState?.getInt(Companion.KEY_CLICK_COUNT, 0)?:0
         supportFragmentManager.beginTransaction()
                 .replace(R.id.infoFragmentContainer,sdkInfoFragment)
                 .replace(R.id.fragmentContainer,sdkLogFragment)
                 .commit()
     }
     private fun refreshStateCount(){
-        tvStateCount.text = "页面状态计数：$clickCount"
+//        tvStateCount.text = "页面状态计数：$clickCount"
+        tvStateCount.text = "页面状态计数：${mainViewModel.clickCount}"
     }
     override fun onStart(){
         super.onStart()
@@ -147,8 +152,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(Companion.KEY_CLICK_COUNT,clickCount)
-        SdkLogger.d("onSaveInstanceState 保存页面状态：clickCount=$clickCount")
+//        outState.putInt(Companion.KEY_CLICK_COUNT,clickCount)
+//        SdkLogger.d("onSaveInstanceState 保存页面状态：clickCount=$clickCount")
     }
 
     private fun getSdkInfoText(): String {
