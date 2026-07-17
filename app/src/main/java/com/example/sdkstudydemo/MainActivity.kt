@@ -1,5 +1,6 @@
 package com.example.sdkstudydemo
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -12,6 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.example.sdkstudydemo.sdk.MySdk
 import com.example.sdkstudydemo.sdk.SdkLogger
+import com.example.sdkstudydemo.sdk.SdkUploadCallback
 import java.util.jar.Manifest
 
 class MainActivity : AppCompatActivity() {
@@ -25,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvStateCount: TextView
     private lateinit var mainViewModel: MainViewModel
     private lateinit var btnIncreaseCount: Button
+    private lateinit var btnUploadEventNetwork:Button
 //    private var clickCount = 0
     private val sdkInfoFragment = SdkInfoFragment()
     private val sdkLogFragment = SdkLogFragment()
@@ -51,6 +54,7 @@ class MainActivity : AppCompatActivity() {
         }
         refreshAll()
     }
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         SdkLogger.d("cdMainActivity onCreate")
@@ -66,6 +70,7 @@ class MainActivity : AppCompatActivity() {
         btnTrackEventByBundle = findViewById(R.id.btnTrackEventByBundle)
         tvStateCount = findViewById(R.id.tvStateCount)
         btnIncreaseCount = findViewById(R.id.btnIncreaseCount)
+        btnUploadEventNetwork = findViewById(R.id.btnUploadEventNetwork)
         mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
         refreshSdkInfo()
         btnIncreaseCount.setOnClickListener {
@@ -112,6 +117,36 @@ class MainActivity : AppCompatActivity() {
             SdkLogger.d("上报结果：code=${result.code}, message=${result.message}")
             refreshAll()
 
+        }
+        //???
+        btnUploadEventNetwork.setOnClickListener {
+            val result = MySdk.trackEventAndUpload(
+                eventName = "click_network_upload_button",
+                params = mapOf(
+                    "page" to "MainActivity",
+                    "from" to "Day17",
+                    "type" to "network"
+                ),
+                callback = object : SdkUploadCallback{
+                    override fun onSuccess(response: String) {
+                        //网络回调要刷新ui，就切回主线程
+                        runOnUiThread {
+                            SdkLogger.d("网络上报成功：$response")
+                            refreshAll()
+                        }
+                    }
+
+                    override fun onFailure(errorMessage: String) {
+                        runOnUiThread {
+                            SdkLogger.e("网络上报失败：$errorMessage")
+                            refreshAll()
+                        }
+                    }
+
+                },
+            )
+            SdkLogger.d("网络上报调用结果：code${result.code},message=${result.message}")
+            refreshAll()
         }
 //        clickCount = savedInstanceState?.getInt(Companion.KEY_CLICK_COUNT, 0)?:0
         supportFragmentManager.beginTransaction()

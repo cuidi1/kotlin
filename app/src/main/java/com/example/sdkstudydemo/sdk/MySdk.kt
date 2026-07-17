@@ -115,14 +115,7 @@ object MySdk {
             SdkLogger.e("事件上报失败：用户未同意隐私协议")
             return createResult(SdkErrorCode.USER_CONSENT_REQUIRED)
         }
-        val event = SdkEvent(
-            eventName = eventName,
-            params = params,
-            appId = sdkConfig.appId,
-            environment = sdkConfig.environment,
-            sdkVerSion = getVersion(),
-            timestamp = System.currentTimeMillis()
-        )
+        val event = createEvent(eventName,params)
         SdkLogger.d("创建事件对象：$event")
         SdkLogger.d("事件上报成功：$eventName");
         return createResult(SdkErrorCode.SUCCESS)
@@ -133,6 +126,37 @@ object MySdk {
     ): SdkResult{
         val params = bundleToStringMap(bundle)
         return trackEvent(eventName, params)
+    }
+
+    //网络上报
+    fun trackEventAndUpload(
+        eventName: String,
+        params:Map<String,String> = emptyMap(),
+        callback: SdkUploadCallback
+    ): SdkResult{
+        if (!initialized) {
+            SdkLogger.e("网络上报失败：SDK 尚未初始化")
+            return createResult(SdkErrorCode.SDK_NOT_INITIALIZED)
+        }
+
+        if (eventName.isBlank()) {
+            SdkLogger.e("网络上报失败：事件名称不能为空")
+            return createResult(SdkErrorCode.INVALID_EVENT_NAME)
+        }
+
+        if (!hasUserConsent()) {
+            SdkLogger.d("合规拦截：用户未同意隐私协议，禁止网络上报")
+            return createResult(SdkErrorCode.USER_CONSENT_REQUIRED)
+        }
+
+        val event = createEvent(eventName, params)
+
+        SdkLogger.d("创建网络上报事件对象：$event")
+        SdkLogger.d("开始网络上报：${event.toJsonString()}")
+
+        SdkEventUploader.upload(event, callback)
+        //网络请求已经开始发起，不代表服务器已经收到并处理
+        return createResult(SdkErrorCode.SUCCESS)
     }
 
     private fun bundleToStringMap(bundle: Bundle): Map<String,String>{
@@ -159,6 +183,21 @@ object MySdk {
 
         Log.d(TAG, message)
     }
+
+    private fun createEvent(
+        eventName: String,
+        params: Map<String, String>
+    ): SdkEvent {
+        return SdkEvent(
+            eventName = eventName,
+            params = params,
+            appId = sdkConfig.appId,
+            environment = sdkConfig.environment,
+            sdkVerSion = getVersion(),
+            timestamp = System.currentTimeMillis()
+        )
+    }
+
     override fun toString(): String {
         return "MySdk(TAG='$TAG', appContext=$appContext, sdkConfig=$sdkConfig, initialized=$initialized)"
     }
