@@ -233,6 +233,7 @@ object MySdk {
             SdkEventUploader.uploadSync(event)
         }
     }
+
     override fun toString(): String {
         return "MySdk(TAG='$TAG', appContext=$appContext, sdkConfig=$sdkConfig, initialized=$initialized)"
     }

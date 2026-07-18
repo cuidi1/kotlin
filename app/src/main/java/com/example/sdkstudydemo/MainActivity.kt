@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.CancellationSignal
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -15,8 +16,11 @@ import androidx.lifecycle.lifecycleScope
 import com.example.sdkstudydemo.sdk.MySdk
 import com.example.sdkstudydemo.sdk.SdkLogger
 import com.example.sdkstudydemo.sdk.SdkUploadCallback
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.jar.Manifest
 
 class MainActivity : AppCompatActivity() {
@@ -33,6 +37,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnUploadEventNetwork:Button
     private lateinit var btnCoroutineTest:Button
     private lateinit var btnUploadEventCoroutine: Button
+    private lateinit var btnStartLongCoroutine: Button
+    private lateinit var btnCancelLongCoroutine: Button
+    private lateinit var btnTimeoutTest: Button
+    private var longCoroutineJob: Job? = null
 //    private var clickCount = 0
     private val sdkInfoFragment = SdkInfoFragment()
     private val sdkLogFragment = SdkLogFragment()
@@ -78,6 +86,9 @@ class MainActivity : AppCompatActivity() {
         btnUploadEventNetwork = findViewById(R.id.btnUploadEventNetwork)
         btnCoroutineTest = findViewById(R.id.btnCoroutineTest)
         btnUploadEventCoroutine = findViewById(R.id.btnUploadEventCoroutine)
+        btnStartLongCoroutine = findViewById(R.id.btnStartLongCoroutine)
+        btnCancelLongCoroutine = findViewById(R.id.btnCancelLongCoroutine)
+        btnTimeoutTest = findViewById(R.id.btnTimeoutTest)
         mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
         refreshSdkInfo()
         btnIncreaseCount.setOnClickListener {
@@ -169,26 +180,64 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+
         //协程网络上报
         btnUploadEventCoroutine.setOnClickListener {
             SdkLogger.d("开始协程网络上报")
             refreshAll()
-            lifecycleScope.launch{
-                val result = MySdk.trackEventAndUploadSuspend(
-                    eventName = "click_coroutine_upload_button",
-                    params = mapOf(
-                        "page" to "MainActivity",
-                        "from" to "Day18",
-                        "type" to "coroutine"
+
+            lifecycleScope.launch {
+                try {
+                    val result = MySdk.trackEventAndUploadSuspend(
+                        eventName = "click_coroutine_upload_button",
+                        params = mapOf(
+                            "page" to "MainActivity",
+                            "from" to "Day19",
+                            "type" to "coroutine"
+                        )
                     )
-                )
-                if(result.success){
-                    SdkLogger.d("协程网络上报成功：${result.response}")
-                    refreshAll()
-                }else{
-                    SdkLogger.e("协程网络上报失败：${result.message}")
+
+                    if (result.success) {
+                        SdkLogger.d("协程网络上报成功：${result.response}")
+                    } else {
+                        SdkLogger.e("协程网络上报失败：${result.message}")
+                    }
+                } catch (e: CancellationException) {
+                    SdkLogger.d("协程网络上报被取消")
+                    throw e
+                } catch (e: Exception) {
+                    SdkLogger.e("协程网络上报异常：${e.message}")
+                } finally {
                     refreshAll()
                 }
+            }
+        }
+        //开始 取消协程
+        btnStartLongCoroutine.setOnClickListener {
+            startLongCoroutineTask()
+        }
+
+        btnCancelLongCoroutine.setOnClickListener {
+            cancelLongCoroutineTask()
+        }
+
+        btnTimeoutTest.setOnClickListener {
+            lifecycleScope.launch {
+                SdkLogger.d("开始协程超时测试")
+                refreshAll()
+
+                val result = withTimeoutOrNull(3000) {
+                    delay(5000)
+                    "任务完成"
+                }
+
+                if (result == null) {
+                    SdkLogger.d("协程超时：3 秒内没有完成")
+                } else {
+                    SdkLogger.d("协程结果：$result")
+                }
+
+                refreshAll()
             }
         }
 //        clickCount = savedInstanceState?.getInt(Companion.KEY_CLICK_COUNT, 0)?:0
@@ -196,6 +245,47 @@ class MainActivity : AppCompatActivity() {
                 .replace(R.id.infoFragmentContainer,sdkInfoFragment)
                 .replace(R.id.fragmentContainer,sdkLogFragment)
                 .commit()
+    }
+
+    //启动长协程任务
+    private fun startLongCoroutineTask() {
+        if(longCoroutineJob?.isActive == true){
+            SdkLogger.d("已有长携程任务正在执行，不重复启动")
+            refreshAll()
+            return
+        }
+        longCoroutineJob = lifecycleScope.launch {
+            try {
+                SdkLogger.d("协程任务开始")
+                refreshAll()
+                for(i in 1..5){
+                    delay(1000)
+                    SdkLogger.d("长协程任务执行中：第$i 秒")
+                    refreshAll()
+                }
+                SdkLogger.d("长携程任务完成")
+                refreshAll()
+
+            }catch (e: CancellationException){
+                SdkLogger.d("协程任务被取消")
+                refreshAll()
+                throw e
+            }catch (e: Exception){
+                SdkLogger.e("协程任务出现异常", e)
+                refreshAll()
+            }
+        }
+    }
+
+    //取消长协程任务
+    private fun cancelLongCoroutineTask() {
+        if(longCoroutineJob?.isActive == true){
+            longCoroutineJob?.cancel()
+            SdkLogger.d("已发出取消长携程任务请求")
+        }else{
+            SdkLogger.d("没有正在执行的长携程任务")
+        }
+        refreshAll()
     }
     private fun refreshStateCount(){
 //        tvStateCount.text = "页面状态计数：$clickCount"
