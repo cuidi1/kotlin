@@ -48,4 +48,27 @@ object SdkEventUploader {
             }
         })
     }
+
+    fun uploadSync(event: SdkEvent): SdkUploadResult {
+        return try{
+            val jsonString = event.toJsonString()
+            val requestBody = jsonString.toRequestBody(JSON_MEDTA_TYPE)
+            val request = Request.Builder()
+                .url(UPLOAD_URL)
+                .post(requestBody)
+                .build()
+            val response = client.newCall(request).execute()
+            response.use{
+                val responseBody = it.body?.string()?:""
+                if(it.isSuccessful){
+                    SdkUploadResult(true, "上传成功", responseBody.take(200))
+                }else{
+                    SdkUploadResult(false, "HTTP ${it.code}:${responseBody.take(200)}")
+                }
+            }
+
+        }catch (e : Exception) {
+            SdkUploadResult(false, e.message ?: "未知错误")
+        }
+    }
 }

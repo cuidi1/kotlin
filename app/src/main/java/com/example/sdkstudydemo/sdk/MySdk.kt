@@ -3,6 +3,8 @@ package com.example.sdkstudydemo.sdk
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object MySdk {
 
@@ -197,7 +199,40 @@ object MySdk {
             timestamp = System.currentTimeMillis()
         )
     }
+    //挂起函数、必须在协程里调用
+    suspend fun trackEventAndUploadSuspend(
+        eventName: String,
+        params: Map<String, String> = emptyMap()
+    ): SdkUploadResult{
+        if(!initialized) {
+            SdkLogger.e("协程网络上报失败：SDK 尚未初始化")
+            return SdkUploadResult(
+                success = false,
+                message = SdkErrorCode.SDK_NOT_INITIALIZED.message
+            )
+        }
+        if (eventName.isBlank()) {
+            SdkLogger.e("协程网络上报失败：事件名称不能为空")
+            return SdkUploadResult(
+                success = false,
+                message = SdkErrorCode.INVALID_EVENT_NAME.message
+            )
+        }
 
+        if (!hasUserConsent()) {
+            SdkLogger.d("合规拦截：用户未同意隐私协议，禁止协程网络上报")
+            return SdkUploadResult(
+                success = false,
+                message = SdkErrorCode.USER_CONSENT_REQUIRED.message
+            )
+        }
+        val event = createEvent(eventName, params)
+        SdkLogger.d("创建协程网络上报事件对象：$event")
+        SdkLogger.d("准备切换到IO线程执行网络请求")
+        return withContext(Dispatchers.IO) {
+            SdkEventUploader.uploadSync(event)
+        }
+    }
     override fun toString(): String {
         return "MySdk(TAG='$TAG', appContext=$appContext, sdkConfig=$sdkConfig, initialized=$initialized)"
     }

@@ -11,9 +11,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.sdkstudydemo.sdk.MySdk
 import com.example.sdkstudydemo.sdk.SdkLogger
 import com.example.sdkstudydemo.sdk.SdkUploadCallback
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.jar.Manifest
 
 class MainActivity : AppCompatActivity() {
@@ -28,6 +31,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mainViewModel: MainViewModel
     private lateinit var btnIncreaseCount: Button
     private lateinit var btnUploadEventNetwork:Button
+    private lateinit var btnCoroutineTest:Button
+    private lateinit var btnUploadEventCoroutine: Button
 //    private var clickCount = 0
     private val sdkInfoFragment = SdkInfoFragment()
     private val sdkLogFragment = SdkLogFragment()
@@ -71,6 +76,8 @@ class MainActivity : AppCompatActivity() {
         tvStateCount = findViewById(R.id.tvStateCount)
         btnIncreaseCount = findViewById(R.id.btnIncreaseCount)
         btnUploadEventNetwork = findViewById(R.id.btnUploadEventNetwork)
+        btnCoroutineTest = findViewById(R.id.btnCoroutineTest)
+        btnUploadEventCoroutine = findViewById(R.id.btnUploadEventCoroutine)
         mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
         refreshSdkInfo()
         btnIncreaseCount.setOnClickListener {
@@ -147,6 +154,42 @@ class MainActivity : AppCompatActivity() {
             )
             SdkLogger.d("网络上报调用结果：code${result.code},message=${result.message}")
             refreshAll()
+        }
+
+        //协程测试点击事件
+        btnCoroutineTest.setOnClickListener {
+            SdkLogger.d("协程任务开始")
+            refreshAll()
+
+            lifecycleScope.launch{
+                //这个delay不会卡住主线程
+                delay(2000)
+                SdkLogger.d("协程任务结束,延迟2秒后执行")
+                refreshAll()
+            }
+        }
+
+        //协程网络上报
+        btnUploadEventCoroutine.setOnClickListener {
+            SdkLogger.d("开始协程网络上报")
+            refreshAll()
+            lifecycleScope.launch{
+                val result = MySdk.trackEventAndUploadSuspend(
+                    eventName = "click_coroutine_upload_button",
+                    params = mapOf(
+                        "page" to "MainActivity",
+                        "from" to "Day18",
+                        "type" to "coroutine"
+                    )
+                )
+                if(result.success){
+                    SdkLogger.d("协程网络上报成功：${result.response}")
+                    refreshAll()
+                }else{
+                    SdkLogger.e("协程网络上报失败：${result.message}")
+                    refreshAll()
+                }
+            }
         }
 //        clickCount = savedInstanceState?.getInt(Companion.KEY_CLICK_COUNT, 0)?:0
         supportFragmentManager.beginTransaction()

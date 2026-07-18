@@ -12,6 +12,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="24dp">
+
     <TextView
         android:id="@+id/tvStateCount"
         android:layout_width="match_parent"
@@ -20,6 +21,16 @@
         android:textSize="16sp"
         android:paddingTop="12dp"
         android:paddingBottom="8dp"/>
+    <Button
+        android:id="@+id/btnCoroutineTest"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="协程测试" />
+    <Button
+        android:id="@+id/btnUploadEventCoroutine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="协程网络上报事件"/>
     <Button
         android:id="@+id/btnUploadEventNetwork"
         android:layout_width="match_parent"
