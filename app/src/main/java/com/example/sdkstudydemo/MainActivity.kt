@@ -104,12 +104,10 @@ class MainActivity : AppCompatActivity() {
         buttonAgree.setOnClickListener {
             MySdk.setUserConsent(true)
             SdkLogger.d("点击同意隐私协议")
-            refreshAll()
         }
         buttonCancel.setOnClickListener {
             MySdk.setUserConsent(false)
             SdkLogger.d("点击取消隐私授权")
-            refreshAll()
         }
         btnSetting.setOnClickListener {
             val intent = Intent(this, SettingActivity::class.java)

@@ -39,6 +39,9 @@ android {
 }
 
 dependencies {
+    val lifecycle_version = "2.11.0"
+
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
