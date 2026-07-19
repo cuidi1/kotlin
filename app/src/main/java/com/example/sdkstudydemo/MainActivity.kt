@@ -18,6 +18,7 @@ import com.example.sdkstudydemo.sdk.SdkLogger
 import com.example.sdkstudydemo.sdk.SdkUploadCallback
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnStartLongCoroutine: Button
     private lateinit var btnCancelLongCoroutine: Button
     private lateinit var btnTimeoutTest: Button
+    private lateinit var bthParallelTaskTest: Button
     private var longCoroutineJob: Job? = null
 //    private var clickCount = 0
     private val sdkInfoFragment = SdkInfoFragment()
@@ -89,6 +91,7 @@ class MainActivity : AppCompatActivity() {
         btnStartLongCoroutine = findViewById(R.id.btnStartLongCoroutine)
         btnCancelLongCoroutine = findViewById(R.id.btnCancelLongCoroutine)
         btnTimeoutTest = findViewById(R.id.btnTimeoutTest)
+        bthParallelTaskTest = findViewById(R.id.btnParallelTaskTest)
         mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
         refreshSdkInfo()
         btnIncreaseCount.setOnClickListener {
@@ -240,6 +243,10 @@ class MainActivity : AppCompatActivity() {
                 refreshAll()
             }
         }
+        //多任务并行（协程）
+        bthParallelTaskTest.setOnClickListener{
+            startParallelTaskTest()
+        }
 //        clickCount = savedInstanceState?.getInt(Companion.KEY_CLICK_COUNT, 0)?:0
         supportFragmentManager.beginTransaction()
                 .replace(R.id.infoFragmentContainer,sdkInfoFragment)
@@ -286,6 +293,47 @@ class MainActivity : AppCompatActivity() {
             SdkLogger.d("没有正在执行的长携程任务")
         }
         refreshAll()
+    }
+
+
+
+
+    private fun startParallelTaskTest() {
+        lifecycleScope.launch {
+            SdkLogger.d("开始并行任务测试")
+            refreshAll()
+            val startTime = System.currentTimeMillis()
+            val configTask = async{
+                delay(1000)
+                SdkLogger.d("配置任务完成")
+                refreshAll()
+            }
+
+            val cacheTask = async {
+                delay(2000)
+                SdkLogger.d("缓存任务完成")
+                "local_cache_success"
+            }
+
+            val reportTask = async {
+                delay(1500)
+                SdkLogger.d("上报任务完成")
+                "start_event_report_success"
+            }
+
+            val configResult = configTask.await()
+            val cacheResult = cacheTask.await()
+            val reportResult = reportTask.await()
+
+            val costTime = System.currentTimeMillis() - startTime
+            SdkLogger.d("并行任务结果：")
+            SdkLogger.d("配置结果：$configResult")
+            SdkLogger.d("缓存结果：$cacheResult")
+            SdkLogger.d("上报结果：$reportResult")
+            SdkLogger.d("并行任务总耗时：${costTime}ms")
+
+            refreshAll()
+        }
     }
     private fun refreshStateCount(){
 //        tvStateCount.text = "页面状态计数：$clickCount"
