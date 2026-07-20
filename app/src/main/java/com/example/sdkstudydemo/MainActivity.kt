@@ -94,20 +94,20 @@ class MainActivity : AppCompatActivity() {
         bthParallelTaskTest = findViewById(R.id.btnParallelTaskTest)
         mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
         refreshSdkInfo()
+        observeMainUiState();
         btnIncreaseCount.setOnClickListener {
-            mainViewModel.clickCount++;
+//            mainViewModel.clickCount++;
 //            clickCount++
 //            SdkLogger.d("页面状态计数增加：$clickCount")
-            refreshStateCount()
-            refreshAll()
+//            refreshStateCount()
+//            refreshAll()
+            mainViewModel.increaseCount()
         }
         buttonAgree.setOnClickListener {
-            MySdk.setUserConsent(true)
-            SdkLogger.d("点击同意隐私协议")
+            mainViewModel.setUserConsent(true)
         }
         buttonCancel.setOnClickListener {
-            MySdk.setUserConsent(false)
-            SdkLogger.d("点击取消隐私授权")
+            mainViewModel.setUserConsent(false)
         }
         btnSetting.setOnClickListener {
             val intent = Intent(this, SettingActivity::class.java)
@@ -337,6 +337,31 @@ class MainActivity : AppCompatActivity() {
 //        tvStateCount.text = "页面状态计数：$clickCount"
         tvStateCount.text = "页面状态计数：${mainViewModel.clickCount}"
     }
+
+
+    private fun observeMainUiState(){
+        lifecycleScope.launch {
+            mainViewModel.uiState.collect {
+                state -> renderMainUiState(state)
+            }
+        }
+    }
+
+    private fun renderMainUiState(state: MainUiState) {
+        tvStateCount.text = "页面状态计数：${state.clickCount}"
+
+        textView.text = """
+        SDK 学习 Demo
+        
+        SDK 是否初始化：${state.sdkInitialized}
+        SDK AppId：${state.appId}
+        SDK 环境：${state.environment}
+        用户是否同意隐私：${state.userConsent}
+        
+        页面提示：${state.message}
+    """.trimIndent()
+    }
+
     override fun onStart(){
         super.onStart()
         SdkLogger.d("cdMainCdActivity onStart")
