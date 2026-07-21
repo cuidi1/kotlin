@@ -7,4 +7,5 @@ data class MainUiState(
     val environment:String = "",
     val userConsent: Boolean = false,
     val message:String = "",
+    val requestState: RequestState = RequestState.Idle
 )

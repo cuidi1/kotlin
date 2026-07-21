@@ -42,6 +42,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnCancelLongCoroutine: Button
     private lateinit var btnTimeoutTest: Button
     private lateinit var bthParallelTaskTest: Button
+    private lateinit var btnRequestSuccess: Button
+    private lateinit var btnRequestError: Button
     private var longCoroutineJob: Job? = null
 //    private var clickCount = 0
     private val sdkInfoFragment = SdkInfoFragment()
@@ -92,6 +94,8 @@ class MainActivity : AppCompatActivity() {
         btnCancelLongCoroutine = findViewById(R.id.btnCancelLongCoroutine)
         btnTimeoutTest = findViewById(R.id.btnTimeoutTest)
         bthParallelTaskTest = findViewById(R.id.btnParallelTaskTest)
+        btnRequestSuccess = findViewById(R.id.btnRequestSuccess)
+        btnRequestError = findViewById(R.id.btnRequestError)
         mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
         refreshSdkInfo()
         observeMainUiState();
@@ -246,6 +250,14 @@ class MainActivity : AppCompatActivity() {
             startParallelTaskTest()
         }
 //        clickCount = savedInstanceState?.getInt(Companion.KEY_CLICK_COUNT, 0)?:0
+
+        btnRequestSuccess.setOnClickListener {
+            mainViewModel.simulateRequestSuccess()
+        }
+
+        btnRequestError.setOnClickListener {
+            mainViewModel.simulateRequestError()
+        }
         supportFragmentManager.beginTransaction()
                 .replace(R.id.infoFragmentContainer,sdkInfoFragment)
                 .replace(R.id.fragmentContainer,sdkLogFragment)
@@ -349,7 +361,27 @@ class MainActivity : AppCompatActivity() {
 
     private fun renderMainUiState(state: MainUiState) {
         tvStateCount.text = "页面状态计数：${state.clickCount}"
+        val requestText = when (val requestState = state.requestState) {
+            is RequestState.Idle -> {
+                "请求状态：未开始"
+            }
 
+            is RequestState.Loading -> {
+                "请求状态：加载中..."
+            }
+
+            is RequestState.Success -> {
+                "请求状态：成功\n结果：${requestState.message}"
+            }
+
+            is RequestState.Error -> {
+                "请求状态：失败\n原因：${requestState.errorMessage}"
+            }
+
+            is RequestState.Empty -> {
+                "请求状态：空数据"
+            }
+        }
         textView.text = """
         SDK 学习 Demo
         
@@ -359,6 +391,7 @@ class MainActivity : AppCompatActivity() {
         用户是否同意隐私：${state.userConsent}
         
         页面提示：${state.message}
+        $requestText
     """.trimIndent()
     }
 

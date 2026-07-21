@@ -12,6 +12,17 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="24dp">
+    <Button
+        android:id="@+id/btnRequestSuccess"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="模拟请求成功" />
+
+    <Button
+        android:id="@+id/btnRequestError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="模拟请求失败" />
 
     <TextView
         android:id="@+id/tvStateCount"
