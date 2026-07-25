@@ -91,33 +91,63 @@ class MainViewModel : ViewModel() {
 //            )
 //        }
 //    }
+//    fun simulateRequestSuccess() {
+//        fetchRemoteConfig(shouldSuccess = true)
+//    }
+//
+//    fun simulateRequestError() {
+//        fetchRemoteConfig(shouldSuccess = false)
+//    }
+
+
     fun simulateRequestSuccess() {
-        fetchRemoteConfig(shouldSuccess = true)
+        fetchRemoteConfig(mode = 0)
     }
 
     fun simulateRequestError() {
-        fetchRemoteConfig(shouldSuccess = false)
+        fetchRemoteConfig(mode = 1)
     }
 
-    private fun fetchRemoteConfig(shouldSuccess: Boolean) {
+    fun simulateRequestException() {
+        fetchRemoteConfig(mode = 2)
+    }
+    private fun fetchRemoteConfig(mode: Int) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
                 requestState = RequestState.Loading,
                 message = "开始拉取远程配置"
             )
 
-            val result = repository.fetchRemoteConfigMock(shouldSuccess)
+            val result = repository.fetchRemoteConfigMock(mode)
 
-            _uiState.value = if (result.success) {
-                _uiState.value.copy(
-                    requestState = RequestState.Success(result.message),
-                    message = "远程配置请求成功"
-                )
-            } else {
-                _uiState.value.copy(
-                    requestState = RequestState.Error(result.message),
-                    message = "远程配置请求失败"
-                )
+            _uiState.value =when(result){
+                is AppResult.Success->{
+                    val config = result.data
+                    _uiState.value.copy(
+                        requestState = RequestState.Success(
+                            "配置版本：${config.configVersion}, 采样率：${config.sampleRate}, 允许上报：${config.enableUpload}"
+                        ),
+                        message = "远程配置请求成功"
+                    )
+                }
+                is AppResult.Error->{
+                    _uiState.value.copy(
+                        requestState = RequestState.Error(
+                            "错误码：${result.code}，错误信息：${result.message}"
+                        ),
+                        message = "远程配置请求失败"
+                    )
+                }
+
+
+                is AppResult.Exception -> {
+                    _uiState.value.copy(
+                        requestState = RequestState.Error(
+                            "异常：${result.throwable.message ?: "未知异常"}"
+                        ),
+                        message = "远程配置请求异常"
+                    )
+                }
             }
         }
     }

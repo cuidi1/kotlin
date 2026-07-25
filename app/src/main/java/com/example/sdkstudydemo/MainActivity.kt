@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bthParallelTaskTest: Button
     private lateinit var btnRequestSuccess: Button
     private lateinit var btnRequestError: Button
+    private lateinit var btnRequestException: Button
     private var longCoroutineJob: Job? = null
 //    private var clickCount = 0
     private val sdkInfoFragment = SdkInfoFragment()
@@ -96,7 +97,10 @@ class MainActivity : AppCompatActivity() {
         bthParallelTaskTest = findViewById(R.id.btnParallelTaskTest)
         btnRequestSuccess = findViewById(R.id.btnRequestSuccess)
         btnRequestError = findViewById(R.id.btnRequestError)
+        btnRequestException = findViewById(R.id.btnRequestException)
+
         mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
+
         refreshSdkInfo()
         observeMainUiState();
         btnIncreaseCount.setOnClickListener {
@@ -257,6 +261,9 @@ class MainActivity : AppCompatActivity() {
 
         btnRequestError.setOnClickListener {
             mainViewModel.simulateRequestError()
+        }
+        btnRequestException.setOnClickListener {
+            mainViewModel.simulateRequestException()
         }
         supportFragmentManager.beginTransaction()
                 .replace(R.id.infoFragmentContainer,sdkInfoFragment)
