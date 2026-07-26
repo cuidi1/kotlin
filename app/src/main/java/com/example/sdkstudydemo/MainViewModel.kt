@@ -118,8 +118,8 @@ class MainViewModel : ViewModel() {
                 message = "开始拉取远程配置"
             )
 
-            val result = repository.fetchRemoteConfigMock(mode)
-
+//            val result = repository.fetchRemoteConfigMock(mode)
+            val result = repository.fetchRemoteConfigWithFallback(mode)
             _uiState.value =when(result){
                 is AppResult.Success->{
                     val config = result.data
