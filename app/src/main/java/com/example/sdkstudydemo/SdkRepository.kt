@@ -71,43 +71,70 @@ class SdkRepository {
 
         }
     }
+//    suspend fun fetchRemoteConfigWithFallback(
+//        mode: Int
+//    ): AppResult<SdkRemoteConfig> {
+//        return try{
+//            val result = withTimeout(2000) {
+//                fetchRemoteConfigFromNetworkMock(mode)
+//            }
+//
+//            when(result) {
+//                is AppResult.Success -> {
+//                    saveConfigToCache(result.data)
+//                    result
+//                }
+//
+//                is AppResult.Error -> {
+//                    getFallbackConfigResult(
+//                        reason = "远程配置业务失败：${result.message}"
+//                    )
+//                }
+//
+//                is AppResult.Exception ->{
+//                    getFallbackConfigResult(
+//                        reason = "远程配置异常：${result.throwable.message ?:"未知异常"}"
+//                    )
+//                }
+//            }
+//        }catch(e : TimeoutCancellationException){
+//            getFallbackConfigResult(
+//                reason = "远程配置请求超时"
+//            )
+//        }catch (e : Exception) {
+//            getFallbackConfigResult(
+//                reason = "远程配置未知异常：${e.message ?: "未知异常"}"
+//            )
+//        }
+//    }
     suspend fun fetchRemoteConfigWithFallback(
         mode: Int
     ): AppResult<SdkRemoteConfig> {
-        return try{
-            val result = withTimeout(2000) {
-                fetchRemoteConfigFromNetworkMock(mode)
+        val result = requestRemoteConfigWithRetry(
+            mode = mode,
+            maxRetryCount = 2,
+            retryDelayMillis = 500L
+        )
+
+        return when (result) {
+            is AppResult.Success -> {
+                saveConfigToCache(result.data)
+                result
             }
 
-            when(result) {
-                is AppResult.Success -> {
-                    saveConfigToCache(result.data)
-                    result
-                }
-
-                is AppResult.Error -> {
-                    getFallbackConfigResult(
-                        reason = "远程配置业务失败：${result.message}"
-                    )
-                }
-
-                is AppResult.Exception ->{
-                    getFallbackConfigResult(
-                        reason = "远程配置异常：${result.throwable.message ?:"未知异常"}"
-                    )
-                }
+            is AppResult.Error -> {
+                getFallbackConfigResult(
+                    reason = "远程配置业务失败：${result.message}"
+                )
             }
-        }catch(e : TimeoutCancellationException){
-            getFallbackConfigResult(
-                reason = "远程配置请求超时"
-            )
-        }catch (e : Exception) {
-            getFallbackConfigResult(
-                reason = "远程配置未知异常：${e.message ?: "未知异常"}"
-            )
+
+            is AppResult.Exception -> {
+                getFallbackConfigResult(
+                    reason = "远程配置异常：${result.throwable.message ?: "未知异常"}"
+                )
+            }
         }
     }
-
     private suspend fun fetchRemoteConfigFromNetworkMock(
         mode: Int
     ): AppResult<SdkRemoteConfig> {
@@ -186,4 +213,64 @@ class SdkRepository {
         )
     }
 
+
+    //判断是否要重试获取远程配置
+    private fun shouldRetry(
+        result: AppResult<SdkRemoteConfig>
+    ): Boolean {
+        return when(result) {
+            is AppResult.Success -> {
+                false
+            }
+            is AppResult.Error ->{
+                false
+            }
+            is AppResult.Exception -> {
+                result.throwable is TimeoutCancellationException
+            }
+        }
+    }
+
+    private suspend fun requestRemoteConfigOnce(
+        mode: Int
+    ): AppResult<SdkRemoteConfig> {
+        return try {
+            withTimeout(2000) {
+                fetchRemoteConfigFromNetworkMock(mode)
+            }
+        } catch (e: TimeoutCancellationException) {
+            AppResult.Exception(e)
+        } catch (e: IOException) {
+            AppResult.Exception(e)
+        } catch (e: Exception) {
+            AppResult.Exception(e)
+        }
+    }
+    //重连核心方法
+    private suspend fun requestRemoteConfigWithRetry(
+        mode:Int,
+        maxRetryCount: Int = 2,
+        retryDelayMillis: Long = 500L
+    ): AppResult<SdkRemoteConfig> {
+        var currentAttempt = 0
+        var lastResult: AppResult<SdkRemoteConfig>
+        while(true) {
+            lastResult = requestRemoteConfigOnce(mode)
+            if(lastResult is AppResult.Success) {
+                return lastResult
+            }
+
+            if(!shouldRetry(lastResult)) {
+                return lastResult
+            }
+
+            if (currentAttempt >= maxRetryCount) {
+                return lastResult
+            }
+
+            currentAttempt++
+
+            delay(retryDelayMillis)
+        }
+    }
 }
