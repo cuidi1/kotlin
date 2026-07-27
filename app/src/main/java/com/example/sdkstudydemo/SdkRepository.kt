@@ -1,6 +1,8 @@
 package com.example.sdkstudydemo
 
+import android.content.Context
 import com.example.sdkstudydemo.sdk.MySdk
+import com.example.sdkstudydemo.sdk.SdkConfig
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.time.withTimeout
@@ -8,10 +10,17 @@ import kotlinx.coroutines.withTimeout
 import java.io.IOException
 
 //repository负责拉取数据，viewmodel不直接关心
-class SdkRepository {
+class SdkRepository(
+    private val context: Context
+) {
     private var cachedConfig: SdkRemoteConfig?=null
-    private fun saveConfigToCache(config: SdkRemoteConfig) {
+    private val configDataStore = SdkConfigDataStore(
+        //Repository生命周期可能比Activity长，不应该持有Activity Context
+        context.applicationContext
+    )
+    private suspend fun saveConfigToCache(config: SdkRemoteConfig) {
         cachedConfig = config
+        configDataStore.saveRemoteConfig(config)
     }
     fun getSdkInfo(): SdkInfo {
         return SdkInfo(
@@ -178,7 +187,7 @@ class SdkRepository {
             }
         }
     }
-    private fun getFallbackConfigResult(
+    private suspend fun getFallbackConfigResult(
         reason: String
     ): AppResult<SdkRemoteConfig> {
         val cache = getCachedConfig()
@@ -197,12 +206,8 @@ class SdkRepository {
         }
     }
 
-    private fun getCachedConfig(): SdkRemoteConfig? {
-        return SdkRemoteConfig(
-            enableUpload = false,
-            sampleRate = 10,
-            configVersion = "default"
-        )
+    private suspend fun getCachedConfig(): SdkRemoteConfig? {
+        return configDataStore.getRemoteConfig()
     }
 
     private fun getDefaultConfig(): SdkRemoteConfig{

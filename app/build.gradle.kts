@@ -42,6 +42,7 @@ dependencies {
     val lifecycle_version = "2.11.0"
 
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version")
+    implementation("androidx.datastore:datastore-preferences-android:1.2.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
