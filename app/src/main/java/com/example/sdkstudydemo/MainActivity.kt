@@ -98,9 +98,15 @@ class MainActivity : AppCompatActivity() {
         btnRequestSuccess = findViewById(R.id.btnRequestSuccess)
         btnRequestError = findViewById(R.id.btnRequestError)
         btnRequestException = findViewById(R.id.btnRequestException)
-
-        mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
-
+//MainViewModel 参数为空时的调用方式
+//        mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        //有参数时的调用方式
+        val repository = SdkRepository(applicationContext)
+        val factory = MainViewModelFactory(repository)
+        mainViewModel = ViewModelProvider(
+            this,
+            factory
+        )[MainViewModel::class.java]
         refreshSdkInfo()
         observeMainUiState();
         btnIncreaseCount.setOnClickListener {
