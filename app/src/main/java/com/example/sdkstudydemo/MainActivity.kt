@@ -101,11 +101,18 @@ class MainActivity : AppCompatActivity() {
 //MainViewModel 参数为空时的调用方式
 //        mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
         //有参数时的调用方式
-        val repository = SdkRepository(applicationContext)
-        val factory = MainViewModelFactory(repository)
+//        val repository = SdkRepository(applicationContext)
+//        val factory = MainViewModelFactory(repository)
+//        mainViewModel = ViewModelProvider(
+//            this,
+//            factory
+//        )[MainViewModel::class.java]
+
+        //更优的调用方式
+        val appContainer =(application as MyApplication).appContainer
         mainViewModel = ViewModelProvider(
             this,
-            factory
+            appContainer.mainViewModelFactory
         )[MainViewModel::class.java]
         refreshSdkInfo()
         observeMainUiState();
