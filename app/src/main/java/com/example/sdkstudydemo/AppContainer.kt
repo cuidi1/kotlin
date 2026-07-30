@@ -5,9 +5,18 @@ import android.content.Context
 class AppContainer(
     private val appContext: Context
 ){
+    val remoteCongfigDataSource: SdkRemoteCongfigDataSource by lazy{
+        SdkNetworkClient()
+    }
+    val sdkNetworkClient: SdkNetworkClient by lazy{
+        SdkNetworkClient()
+    }
     //by lazy是kotlin懒加载，第一次用的时候才创建，创建一次后报错起来，以后直接返回同一个对象
     val sdkRepository: SdkRepository by lazy{
-        SdkRepository(appContext)
+        SdkRepository(
+            appContext,
+            remoteCongfigDataSource
+        )
     }
     val mainViewModelFactory: MainViewModelFactory by lazy {
         MainViewModelFactory(sdkRepository)
