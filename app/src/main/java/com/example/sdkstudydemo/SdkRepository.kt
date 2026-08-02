@@ -3,6 +3,7 @@ package com.example.sdkstudydemo
 import android.content.Context
 import com.example.sdkstudydemo.sdk.MySdk
 import com.example.sdkstudydemo.sdk.SdkConfig
+import com.example.sdkstudydemo.sdk.SdkEvent
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.time.withTimeout
@@ -12,7 +13,8 @@ import java.io.IOException
 //repository负责拉取数据，viewmodel不直接关心
 class SdkRepository(
     private val context: Context,
-    private val remoteConfigDataSource: SdkRemoteCongfigDataSource
+    private val remoteConfigDataSource: SdkRemoteCongfigDataSource,
+    private val eventUploadDataSource: SdkEventUploadDataSource
 ) {
     private var cachedConfig: SdkRemoteConfig?=null
     private val configDataStore = SdkConfigDataStore(
@@ -282,5 +284,10 @@ class SdkRepository(
 
             delay(retryDelayMillis)
         }
+    }
+    suspend fun uploadEvent(
+        event: SdkEvent
+    ): AppResult<Unit> {
+        return eventUploadDataSource.uploadEvent(event)
     }
 }

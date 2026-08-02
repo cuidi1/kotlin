@@ -3,6 +3,8 @@ package com.example.sdkstudydemo
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sdkstudydemo.sdk.MySdk
+import com.example.sdkstudydemo.sdk.SdkEnvironment
+import com.example.sdkstudydemo.sdk.SdkEvent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -111,6 +113,57 @@ class MainViewModel(
 
     fun simulateRequestException() {
         fetchRemoteConfig(mode = 2)
+    }
+
+    //时间上报，没有给这个接口写按钮，这个是网络层面的上报，就是通过http传过去了
+    fun uploadTestEvent() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                requestState = RequestState.Loading,
+                message = "开始上传测试事件"
+            )
+
+            val event = SdkEvent(
+                eventName = "test_event",
+                params = mapOf(
+                    "page" to "MainActivity",
+                    "button" to "upload_test_event"
+                ),
+                appId = "demo_app_id",
+                environment = SdkEnvironment.TEST,
+                sdkVerSion = "1.0.0",
+                timestamp = System.currentTimeMillis()
+            )
+
+            val result = repository.uploadEvent(event)
+
+            _uiState.value = when (result) {
+                is AppResult.Success -> {
+                    _uiState.value.copy(
+                        requestState = RequestState.Success("事件上传成功"),
+                        message = "事件上传成功"
+                    )
+                }
+
+                is AppResult.Error -> {
+                    _uiState.value.copy(
+                        requestState = RequestState.Error(
+                            "事件上传失败：${result.code}，${result.message}"
+                        ),
+                        message = "事件上传业务失败"
+                    )
+                }
+
+                is AppResult.Exception -> {
+                    _uiState.value.copy(
+                        requestState = RequestState.Error(
+                            "事件上传异常：${result.throwable.message ?: "未知异常"}"
+                        ),
+                        message = "事件上传异常"
+                    )
+                }
+            }
+        }
     }
     private fun fetchRemoteConfig(mode: Int) {
         viewModelScope.launch {
