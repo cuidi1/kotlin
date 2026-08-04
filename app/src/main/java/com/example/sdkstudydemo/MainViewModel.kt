@@ -205,4 +205,44 @@ class MainViewModel(
             }
         }
     }
+//重试上传事件
+    fun retryCachedEvents() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                requestState = RequestState.Loading,
+                message = "开始重试缓存事件"
+            )
+
+            val result = repository.retryCachedEvents()
+
+            _uiState.value = when (result) {
+                is AppResult.Success -> {
+                    _uiState.value.copy(
+                        requestState = RequestState.Success(
+                            "本次重试成功 ${result.data} 条事件"
+                        ),
+                        message = "缓存事件重试完成"
+                    )
+                }
+
+                is AppResult.Error -> {
+                    _uiState.value.copy(
+                        requestState = RequestState.Error(
+                            "重试失败：${result.code}，${result.message}"
+                        ),
+                        message = "缓存事件重试失败"
+                    )
+                }
+
+                is AppResult.Exception -> {
+                    _uiState.value.copy(
+                        requestState = RequestState.Error(
+                            "重试异常：${result.throwable.message ?: "未知异常"}"
+                        ),
+                        message = "缓存事件重试异常"
+                    )
+                }
+            }
+        }
+    }
 }

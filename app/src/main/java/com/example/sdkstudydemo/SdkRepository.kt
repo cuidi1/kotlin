@@ -14,7 +14,9 @@ import java.io.IOException
 class SdkRepository(
     private val context: Context,
     private val remoteConfigDataSource: SdkRemoteCongfigDataSource,
-    private val eventUploadDataSource: SdkEventUploadDataSource
+    private val eventUploadDataSource: SdkEventUploadDataSource,
+    private val eventRetryQueue: SdkEventRetryQueue
+
 ) {
     private var cachedConfig: SdkRemoteConfig?=null
     private val configDataStore = SdkConfigDataStore(
@@ -289,5 +291,105 @@ class SdkRepository(
         event: SdkEvent
     ): AppResult<Unit> {
         return eventUploadDataSource.uploadEvent(event)
+    }
+
+    //上传失败后加入队列
+    suspend fun uploadEventWithCache(
+        event: SdkEvent
+    ): AppResult<Unit> {
+//        先正常上传；
+//        如果失败并且值得重试；
+//        就放入失败队列；
+//        最后仍然把本次结果返回给 ViewModel。
+        val result = eventUploadDataSource.uploadEvent(event)
+        if(shouldCacheFailedEvent(result)){
+            eventRetryQueue.enqueue(
+                event = event,
+                errorMessage = getErrorMessage(result)
+            )
+        }
+        return result
+    }
+
+    private fun getErrorMessage(result: AppResult<Unit>): String {
+        return when(result) {
+            is AppResult.Success -> {
+                "成功"
+            }
+
+            is AppResult.Error -> {
+                "错误码：${result.code}，错误信息：${result.message}"
+            }
+
+            is AppResult.Exception -> {
+                result.throwable.message ?: "未知异常"
+            }
+
+        }
+    }
+
+    private fun shouldCacheFailedEvent(result: AppResult<Unit>): Boolean {
+        return when (result) {
+            is AppResult.Success->{
+                false
+            }
+            //只缓存 408、429、500～599 这类可能临时失败的错误。
+            is AppResult.Error ->{
+                result.code == 408 || result.code == 429 || result.code in 500..599
+            }
+            is AppResult.Exception -> {
+                true
+            }
+        }
+    }
+
+    //重试队列里的事件,这是连接通过网络上传时间的入口，带缓存队列的
+    suspend fun retryCachedEvents(): AppResult<Int> {
+        val pendingEvents = eventRetryQueue.getPendingEvents()
+        if(pendingEvents.isEmpty()){
+            return AppResult.Success(0)
+        }
+        var successCount = 0
+        for(pendingEvent in pendingEvents) {
+            val result = eventUploadDataSource.uploadEvent(pendingEvent.event)
+            when(result) {
+                is AppResult.Success ->{
+                    eventRetryQueue.remove(pendingEvent.id)
+                    successCount++
+                }
+
+                is AppResult.Error -> {
+                    handleRetryFailure(
+                        pendingEvent = pendingEvent,
+                        errorMessage = "错误码：${result.code}，错误信息：${result.message}"
+                    )
+                }
+
+                is AppResult.Exception -> {
+                    handleRetryFailure(
+                        pendingEvent = pendingEvent,
+                        errorMessage = result.throwable.message ?: "未知异常"
+                    )
+                }
+            }
+        }
+        return AppResult.Success(successCount)
+    }
+
+    private fun handleRetryFailure(
+        pendingEvent: SdkPendingEvent,
+        errorMessage: String
+    ) {
+        val maxRetryCount = 3
+
+        if (pendingEvent.retryCount + 1 >= maxRetryCount) {
+            eventRetryQueue.remove(pendingEvent.id)
+            return
+        }
+
+        eventRetryQueue.updateRetryFailure(
+            pendingEventId = pendingEvent.id,
+            errorMessage = errorMessage
+        )
     }
 }

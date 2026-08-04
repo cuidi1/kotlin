@@ -45,6 +45,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnRequestSuccess: Button
     private lateinit var btnRequestError: Button
     private lateinit var btnRequestException: Button
+
+    private lateinit var btnRetryCachedEvents: Button
     private var longCoroutineJob: Job? = null
 //    private var clickCount = 0
     private val sdkInfoFragment = SdkInfoFragment()
@@ -98,6 +100,7 @@ class MainActivity : AppCompatActivity() {
         btnRequestSuccess = findViewById(R.id.btnRequestSuccess)
         btnRequestError = findViewById(R.id.btnRequestError)
         btnRequestException = findViewById(R.id.btnRequestException)
+        btnRetryCachedEvents = findViewById(R.id.btnRetryCachedEvents)
 //MainViewModel 参数为空时的调用方式
 //        mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
         //有参数时的调用方式
@@ -123,6 +126,9 @@ class MainActivity : AppCompatActivity() {
 //            refreshStateCount()
 //            refreshAll()
             mainViewModel.increaseCount()
+        }
+        btnRetryCachedEvents.setOnClickListener {
+            mainViewModel.retryCachedEvents()
         }
         buttonAgree.setOnClickListener {
             mainViewModel.setUserConsent(true)
