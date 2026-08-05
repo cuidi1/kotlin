@@ -213,7 +213,8 @@ class MainViewModel(
                 message = "开始重试缓存事件"
             )
 
-            val result = repository.retryCachedEvents()
+//            val result = repository.retryCachedEvents()
+            val result = repository.retryCachedEventsByBatch()
 
             _uiState.value = when (result) {
                 is AppResult.Success -> {

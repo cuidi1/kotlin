@@ -392,4 +392,66 @@ class SdkRepository(
             errorMessage = errorMessage
         )
     }
+
+
+    suspend fun retryCachedEventsByBatch(): AppResult<Int> {
+        val batchSize = 10
+
+        val batchEvents = eventRetryQueue.getBatchEvents(batchSize)
+
+        if (batchEvents.isEmpty()) {
+            return AppResult.Success(0)
+        }
+
+        val events = batchEvents.map { pendingEvent ->
+            pendingEvent.event
+        }
+
+        val result = eventUploadDataSource.uploadEvents(events)
+
+        return when (result) {
+            is AppResult.Success -> {
+                val successIds = batchEvents.map { pendingEvent ->
+                    pendingEvent.id
+                }
+
+                eventRetryQueue.removeAllByIds(successIds)
+
+                AppResult.Success(batchEvents.size)
+            }
+
+            is AppResult.Error -> {
+                handleBatchRetryFailure(
+                    pendingEvents = batchEvents,
+                    errorMessage = "错误码：${result.code}，错误信息：${result.message}"
+                )
+
+                AppResult.Error(
+                    code = result.code,
+                    message = result.message
+                )
+            }
+
+            is AppResult.Exception -> {
+                handleBatchRetryFailure(
+                    pendingEvents = batchEvents,
+                    errorMessage = result.throwable.message ?: "未知异常"
+                )
+
+                AppResult.Exception(result.throwable)
+            }
+        }
+    }
+
+    private fun handleBatchRetryFailure(
+        pendingEvents: List<SdkPendingEvent>,
+        errorMessage: String
+    ) {
+        for (pendingEvent in pendingEvents) {
+            handleRetryFailure(
+                pendingEvent = pendingEvent,
+                errorMessage = errorMessage
+            )
+        }
+    }
 }

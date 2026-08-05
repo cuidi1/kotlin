@@ -1,12 +1,16 @@
 package com.example.sdkstudydemo
 import com.example.sdkstudydemo.sdk.SdkEvent
+import kotlin.math.max
 
-class SdkEventRetryQueue {
+class SdkEventRetryQueue(private val maxQueueSize : Int = 100) {
     private val pendingEvents = mutableListOf<SdkPendingEvent>()
     fun enqueue(
         event: SdkEvent,
         errorMessage: String
     ){
+        if (pendingEvents.size>= maxQueueSize){
+            pendingEvents.removeAt(0)
+        }
         pendingEvents.add(
             SdkPendingEvent(
                 event = event,
@@ -43,14 +47,22 @@ class SdkEventRetryQueue {
             retryCount = oldEvent.retryCount + 1,
             lastErrorMessage = errorMessage
         )
+    }
+    fun size(): Int {
+        return pendingEvents.size
+    }
 
-        fun size(): Int {
-            return pendingEvents.size
-        }
+    fun clear() {
+        pendingEvents.clear()
+    }
 
-        fun clear() {
-            pendingEvents.clear()
-        }
+    //toList()是为了返回一个新的列表副本，目的是保护内部队列，不让外部随便改
+    fun getBatchEvents(batchSize: Int): List<SdkPendingEvent>{
+        return pendingEvents.take(batchSize).toList()
+    }
+
+    fun removeAllByIds(pendingEventIds: List<String>){
+        pendingEvents.removeAll { pendingEvent -> pendingEvent.id in pendingEventIds }
     }
 
 
