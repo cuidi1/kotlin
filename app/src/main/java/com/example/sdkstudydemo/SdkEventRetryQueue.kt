@@ -2,13 +2,15 @@ package com.example.sdkstudydemo
 import com.example.sdkstudydemo.sdk.SdkEvent
 import kotlin.math.max
 
-class SdkEventRetryQueue(private val maxQueueSize : Int = 100) {
+class SdkEventRetryQueue(
+    private val queueLimitPolicy: SdkQueueLimitPolicy
+) {
     private val pendingEvents = mutableListOf<SdkPendingEvent>()
     fun enqueue(
         event: SdkEvent,
         errorMessage: String
     ){
-        if (pendingEvents.size>= maxQueueSize){
+        if (queueLimitPolicy.shouldRemoveOldest(pendingEvents.size)){
             pendingEvents.removeAt(0)
         }
         pendingEvents.add(

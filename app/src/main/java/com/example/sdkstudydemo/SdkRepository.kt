@@ -15,7 +15,9 @@ class SdkRepository(
     private val context: Context,
     private val remoteConfigDataSource: SdkRemoteCongfigDataSource,
     private val eventUploadDataSource: SdkEventUploadDataSource,
-    private val eventRetryQueue: SdkEventRetryQueue
+    private val eventRetryQueue: SdkEventRetryQueue,
+    private val retryPolicy: SdkRetryPolicy,
+    private val batchPolicy: SdkBatchPolicy
 
 ) {
     private var cachedConfig: SdkRemoteConfig?=null
@@ -302,7 +304,8 @@ class SdkRepository(
 //        就放入失败队列；
 //        最后仍然把本次结果返回给 ViewModel。
         val result = eventUploadDataSource.uploadEvent(event)
-        if(shouldCacheFailedEvent(result)){
+        //repository不再自己判断，而是交给外边的重试策略
+        if(retryPolicy.shouldCacheFailedEvent(result)){
             eventRetryQueue.enqueue(
                 event = event,
                 errorMessage = getErrorMessage(result)
@@ -382,7 +385,7 @@ class SdkRepository(
     ) {
         val maxRetryCount = 3
 
-        if (pendingEvent.retryCount + 1 >= maxRetryCount) {
+        if (retryPolicy.shouldDropAfterFailure(pendingEvent)) {
             eventRetryQueue.remove(pendingEvent.id)
             return
         }
@@ -395,8 +398,10 @@ class SdkRepository(
 
 
     suspend fun retryCachedEventsByBatch(): AppResult<Int> {
-        val batchSize = 10
-
+//        val batchSize = 10
+//
+//        val batchEvents = eventRetryQueue.getBatchEvents(batchSize)
+        val batchSize = batchPolicy.getBatchSize()
         val batchEvents = eventRetryQueue.getBatchEvents(batchSize)
 
         if (batchEvents.isEmpty()) {

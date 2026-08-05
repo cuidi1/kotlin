@@ -15,8 +15,23 @@ class AppContainer(
         SdkNetworkClient()
     }
 
+    val retryPolicy: SdkRetryPolicy by lazy{
+        DefaultSdkRetryPolicy(3)
+    }
+    val batchPolicy: SdkBatchPolicy by lazy{
+        DefaultSdkBatchPolicy(
+            10
+        )
+    }
+    val queueLimitPolicy: SdkQueueLimitPolicy by lazy{
+        DefaultSdkQueueLimitPolicy(
+            100
+        )
+    }
     val eventRetryQueue: SdkEventRetryQueue by lazy{
-        SdkEventRetryQueue()
+        SdkEventRetryQueue(
+            queueLimitPolicy
+        )
     }
     //by lazy是kotlin懒加载，第一次用的时候才创建，创建一次后报错起来，以后直接返回同一个对象
     val sdkRepository: SdkRepository by lazy{
