@@ -39,7 +39,9 @@ class AppContainer(
             context = appContext,
             remoteConfigDataSource = remoteCongfigDataSource,
             eventUploadDataSource = eventUploadDataSource,
-            eventRetryQueue = eventRetryQueue
+            eventRetryQueue = eventRetryQueue,
+            retryPolicy,
+            batchPolicy
         )
     }
     val mainViewModelFactory: MainViewModelFactory by lazy {
