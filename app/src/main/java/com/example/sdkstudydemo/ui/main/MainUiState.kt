@@ -1,0 +1,13 @@
+package com.example.sdkstudydemo.ui.main
+
+import com.example.sdkstudydemo.ui.main.RequestState
+
+data class MainUiState(
+    val clickCount: Int=0,
+    val sdkInitialized: Boolean = false,
+    val appId:String = "",
+    val environment:String = "",
+    val userConsent: Boolean = false,
+    val message:String = "",
+    val requestState: RequestState = RequestState.Idle
+)

@@ -24,4 +24,34 @@ data class SdkEvent (
         json.put("params", paramsJson)
         return json.toString()
     }
+//挂在类名上的工具方法
+    companion object {
+
+        fun fromJsonObject(
+            json: JSONObject
+        ): SdkEvent {
+            val paramsJson = json.optJSONObject("params") ?: JSONObject()
+
+            val params = mutableMapOf<String, String>()
+
+            val keys = paramsJson.keys()
+
+            while (keys.hasNext()) {
+                val key = keys.next()
+                val value = paramsJson.optString(key, "")
+                params[key] = value
+            }
+
+            return SdkEvent(
+                eventName = json.optString("eventName", ""),
+                params = params,
+                appId = json.optString("appId", ""),
+                environment = SdkEnvironment.valueOf(
+                    json.optString("environment", SdkEnvironment.TEST.name)
+                ),
+                json.optString("sdkVersion", ""),
+                json.optLong("timestamp", System.currentTimeMillis())
+            )
+        }
+    }
 }

@@ -3,6 +3,7 @@ package com.example.sdkstudydemo.sdk
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import com.example.sdkstudydemo.core.SdkLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
