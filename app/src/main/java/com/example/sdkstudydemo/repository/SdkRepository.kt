@@ -15,6 +15,8 @@ import com.example.sdkstudydemo.sdk.MySdk
 import com.example.sdkstudydemo.sdk.SdkEvent
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import java.io.IOException
 
@@ -34,16 +36,22 @@ class SdkRepository(
         //Repository生命周期可能比Activity长，不应该持有Activity Context
         context.applicationContext
     )
+    private val flushMutex = Mutex()
 
+    //如果拿不到锁，说明已经有人在 flush，
+    //那就直接返回 409，不等待。
     suspend fun flushCachedEvents(): AppResult<Int> {
-        if(isFlushing) {
+        val locked = flushMutex.tryLock()
+        if(!locked) {
             return AppResult.Error(409, "当前已经有事件上报任务正在执行")
         }
-        isFlushing = true
+//        isFlushing = true
         return try {
             retryCachedEventsByBatch()
+
         }finally {
-            isFlushing = false
+//            isFlushing = false
+            flushMutex.unlock()
         }
     }
     private suspend fun saveConfigToCache(config: SdkRemoteConfig) {
