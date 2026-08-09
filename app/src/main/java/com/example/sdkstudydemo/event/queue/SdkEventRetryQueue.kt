@@ -13,12 +13,29 @@ class SdkEventRetryQueue(
 ) {
     private val pendingEvents = mutableListOf<SdkPendingEvent>()
     private val queueMutex = Mutex()
+    //是否从DataStore里恢复过
+    private var restored = false
+
+    private  suspend fun ensureRestoredLocked(){
+        if(restored){
+            return
+        }
+        val localEvents = pendingEventStore.loadPendingEvents()
+        pendingEvents.clear()
+        pendingEvents.addAll(localEvents)
+        restored = true
+    }
+
+    private suspend fun persistLocked(){
+        pendingEventStore.savePendingEvents(pendingEvents.toList())
+    }
     suspend fun enqueue(
         event: SdkEvent,
         errorMessage: String
     ){
         queueMutex.withLock {
-            val pendingEvents = pendingEventStore.loadPendingEvents().toMutableList()
+//            val pendingEvents = pendingEventStore.loadPendingEvents().toMutableList()
+           ensureRestoredLocked()
             if (queueLimitPolicy.shouldRemoveOldest(pendingEvents.size)){
                 pendingEvents.removeAt(0)
             }
@@ -28,13 +45,15 @@ class SdkEventRetryQueue(
                     lastErrorMessage = errorMessage
                 )
             )
-            pendingEventStore.savePendingEvents(pendingEvents)
+            persistLocked()
         }
 
     }
 
     suspend fun getPendingEvents(): List<SdkPendingEvent> {
-        return pendingEvents.toList()
+        return queueMutex.withLock {
+            pendingEvents.toList()
+        }
     }
 
     suspend fun remove(
@@ -44,7 +63,7 @@ class SdkEventRetryQueue(
             val pendingEvents=pendingEventStore.loadPendingEvents().toMutableList()
             pendingEvents.removeAll{
                 pendingEvent-> pendingEvent.id == pendingEventId}
-
+            pendingEventStore.savePendingEvents(pendingEvents)
         }
     }
 
@@ -53,7 +72,7 @@ class SdkEventRetryQueue(
         errorMessage: String
     ){
         queueMutex.withLock {
-            val pendingEvents=pendingEventStore.loadPendingEvents().toMutableList()
+            ensureRestoredLocked()
             val index = pendingEvents.indexOfFirst{
                     pendingEvent -> pendingEvent.id==pendingEventId
             }
@@ -66,7 +85,7 @@ class SdkEventRetryQueue(
                 retryCount = oldEvent.retryCount + 1,
                 lastErrorMessage = errorMessage
             )
-            pendingEventStore.savePendingEvents(pendingEvents)
+            persistLocked()
         }
 
     }
@@ -75,19 +94,26 @@ class SdkEventRetryQueue(
     }
 
     suspend fun clear() {
-        pendingEvents.clear()
+        queueMutex.withLock {
+            pendingEventStore.clear()
+            pendingEvents.clear()
+        }
+
     }
 
     //toList()是为了返回一个新的列表副本，目的是保护内部队列，不让外部随便改
     suspend fun getBatchEvents(batchSize: Int): List<SdkPendingEvent>{
-        val pendingEvents=pendingEventStore.loadPendingEvents().toMutableList()
-        return queueMutex.withLock {  pendingEvents.take(batchSize).toList()}
+        return queueMutex.withLock {
+            //不需要每次都从DataStore里读
+            ensureRestoredLocked()
+            pendingEvents.take(batchSize).toList()}
     }
 
     suspend fun removeAllByIds(pendingEventIds: List<String>){
         queueMutex.withLock {
-            val pendingEvents=pendingEventStore.loadPendingEvents().toMutableList()
+            ensureRestoredLocked()
             pendingEvents.removeAll { pendingEvent -> pendingEvent.id in pendingEventIds }
+            persistLocked()
         }
     }
 
