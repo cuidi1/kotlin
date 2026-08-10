@@ -24,6 +24,10 @@
         </activity>
 
         <activity android:name=".ui.setting.SettingActivity"/>
+        <service android:name=".service.DemoService"
+            android:exported="false"/>
+        <service android:name=".service.DemoBoundService"
+            android:exported="false"/>
 
     </application>
 

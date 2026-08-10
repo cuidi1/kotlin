@@ -13,6 +13,34 @@
     android:orientation="vertical"
     android:padding="24dp">
     <Button
+        android:id="@+id/btnBindService"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="绑定 Bound Service" />
+
+    <Button
+        android:id="@+id/btnCallService"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="调用 Service 方法" />
+
+    <Button
+        android:id="@+id/btnUnbindService"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="解绑 Bound Service" />
+    <Button
+        android:id="@+id/btnStartDemoService"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="启动 Demo Service" />
+
+    <Button
+        android:id="@+id/btnStopDemoService"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="停止 Demo Service" />
+    <Button
         android:id="@+id/btnRetryCachedEvents"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

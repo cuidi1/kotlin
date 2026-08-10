@@ -2,9 +2,13 @@ package com.example.sdkstudydemo.ui.main
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.IBinder
 import android.widget.Button
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,12 +27,15 @@ import com.example.sdkstudydemo.app.MyApplication
 import com.example.sdkstudydemo.sdk.MySdk
 import com.example.sdkstudydemo.core.SdkLogger
 import com.example.sdkstudydemo.sdk.SdkUploadCallback
+import com.example.sdkstudydemo.service.DemoBoundService
+import com.example.sdkstudydemo.service.DemoService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.jvm.java
 
 class MainActivity : AppCompatActivity() {
     private lateinit var textView: TextView
@@ -53,10 +60,42 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnRequestException: Button
 
     private lateinit var btnRetryCachedEvents: Button
+
+    private lateinit var btnStartDemoService: Button
+    private lateinit var btnStopDemoService: Button
+
+    private lateinit var btnBindService: Button
+    private lateinit var btnCallService: Button
+    private lateinit var btnUnbindService: Button
+    //Activity 当前拿到的 Service 对象
+    private var boundService: DemoBoundService? = null
+    //Activity 现在到底有没有和 Service 绑定
+    private var isServiceBound = false
     private var longCoroutineJob: Job? = null
 //    private var clickCount = 0
     private val sdkInfoFragment = SdkInfoFragment()
     private val sdkLogFragment = SdkLogFragment()
+
+    private val serviceConnection=object: ServiceConnection{
+        override fun onServiceConnected(
+            name: ComponentName?,
+            service: IBinder?
+        ) {
+            //IBinder强转LocalBinder
+            val binder = service as DemoBoundService.LocalBinder
+            boundService = binder.getService()
+            isServiceBound = true
+            SdkLogger.d("MainActivity:Bound Service 连接成功")
+        }
+
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            boundService = null
+            isServiceBound = false
+            SdkLogger.d("MainActivity:Bound Service意外断开")
+        }
+
+    }
     private val settingLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
@@ -107,6 +146,19 @@ class MainActivity : AppCompatActivity() {
         btnRequestError = findViewById(R.id.btnRequestError)
         btnRequestException = findViewById(R.id.btnRequestException)
         btnRetryCachedEvents = findViewById(R.id.btnRetryCachedEvents)
+        btnBindService =
+            findViewById(R.id.btnBindService)
+
+        btnCallService =
+            findViewById(R.id.btnCallService)
+
+        btnUnbindService =
+            findViewById(R.id.btnUnbindService)
+        btnStartDemoService =
+            findViewById(R.id.btnStartDemoService)
+
+        btnStopDemoService =
+            findViewById(R.id.btnStopDemoService)
 //MainViewModel 参数为空时的调用方式
 //        mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
         //有参数时的调用方式
@@ -125,6 +177,87 @@ class MainActivity : AppCompatActivity() {
         )[MainViewModel::class.java]
         refreshSdkInfo()
         observeMainUiState();
+
+
+        btnBindService.setOnClickListener {
+
+            if (isServiceBound) {
+                SdkLogger.d("已经绑定，不重复 bind")
+                return@setOnClickListener
+            }
+
+            val intent = Intent(
+                this,
+                DemoBoundService::class.java
+            )
+
+            bindService(
+                intent,
+                serviceConnection,
+                Context.BIND_AUTO_CREATE
+            )
+        }
+
+        btnCallService.setOnClickListener {
+
+            if (!isServiceBound) {
+                SdkLogger.d("Service 还没有绑定")
+                return@setOnClickListener
+            }
+
+            val count =
+                boundService?.increaseCount()
+
+            SdkLogger.d(
+                "Activity 调用了 Service，count=$count"
+            )
+
+            refreshAll()
+        }
+        btnUnbindService.setOnClickListener {
+
+            if (!isServiceBound) {
+                SdkLogger.d("当前没有绑定 Service")
+                return@setOnClickListener
+            }
+
+            unbindService(serviceConnection)
+
+            boundService = null
+            isServiceBound = false
+
+            SdkLogger.d(
+                "MainActivity 调用 unbindService()"
+            )
+
+            refreshAll()
+        }
+
+        btnStartDemoService.setOnClickListener {
+            val intent = Intent(this, DemoService::class.java)
+            startService(intent)
+            SdkLogger.d(
+                "MainActivity 调用 startService()"
+            )
+
+            refreshAll()
+        }
+
+        btnStopDemoService.setOnClickListener {
+
+            val intent = Intent(
+                this,
+                DemoService::class.java
+            )
+
+            stopService(intent)
+
+            SdkLogger.d(
+                "MainActivity 调用 stopService()"
+            )
+
+            refreshAll()
+        }
         btnIncreaseCount.setOnClickListener {
 //            mainViewModel.clickCount++;
 //            clickCount++
