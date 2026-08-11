@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -26,6 +27,7 @@ import com.example.sdkstudydemo.ui.setting.SettingActivity
 import com.example.sdkstudydemo.app.MyApplication
 import com.example.sdkstudydemo.sdk.MySdk
 import com.example.sdkstudydemo.core.SdkLogger
+import com.example.sdkstudydemo.receiver.DemoBroadCastReceiver
 import com.example.sdkstudydemo.sdk.SdkUploadCallback
 import com.example.sdkstudydemo.service.DemoBoundService
 import com.example.sdkstudydemo.service.DemoService
@@ -67,6 +69,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnBindService: Button
     private lateinit var btnCallService: Button
     private lateinit var btnUnbindService: Button
+
+    private lateinit var btnSendBroadcast: Button
     //Activity 当前拿到的 Service 对象
     private var boundService: DemoBoundService? = null
     //Activity 现在到底有没有和 Service 绑定
@@ -75,6 +79,8 @@ class MainActivity : AppCompatActivity() {
 //    private var clickCount = 0
     private val sdkInfoFragment = SdkInfoFragment()
     private val sdkLogFragment = SdkLogFragment()
+    private val demoReceiver = DemoBroadCastReceiver()
+
 
     private val serviceConnection=object: ServiceConnection{
         override fun onServiceConnected(
@@ -156,7 +162,8 @@ class MainActivity : AppCompatActivity() {
             findViewById(R.id.btnUnbindService)
         btnStartDemoService =
             findViewById(R.id.btnStartDemoService)
-
+        btnSendBroadcast =
+            findViewById(R.id.btnSendBroadcast)
         btnStopDemoService =
             findViewById(R.id.btnStopDemoService)
 //MainViewModel 参数为空时的调用方式
@@ -179,6 +186,14 @@ class MainActivity : AppCompatActivity() {
         observeMainUiState();
 
 
+
+        btnSendBroadcast.setOnClickListener {
+            val intent = Intent( "com.example.sdkstudydemo.ACTION_DEMO")
+            intent.setPackage(packageName)
+            intent.putExtra("message", "MainActivity发来的消息")
+            sendBroadcast(intent)
+            SdkLogger.d("MainActivity发送Demo广播")
+        }
         btnBindService.setOnClickListener {
 
             if (isServiceBound) {
@@ -563,6 +578,8 @@ class MainActivity : AppCompatActivity() {
     override fun onStart(){
         super.onStart()
         SdkLogger.d("cdMainCdActivity onStart")
+        val filter = IntentFilter("com.example.sdkstudydemo.ACTION_DEMO")
+        ContextCompat.registerReceiver(this, demoReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
     }
 
     override fun onResume(){
@@ -576,6 +593,7 @@ class MainActivity : AppCompatActivity() {
     }
     override fun onStop(){
         super.onStop()
+        unregisterReceiver(demoReceiver)
         SdkLogger.d("cdMainCdActivity onStop")
     }
     override fun onRestart(){
