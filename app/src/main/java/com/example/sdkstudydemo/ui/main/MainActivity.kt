@@ -27,6 +27,7 @@ import com.example.sdkstudydemo.ui.setting.SettingActivity
 import com.example.sdkstudydemo.app.MyApplication
 import com.example.sdkstudydemo.sdk.MySdk
 import com.example.sdkstudydemo.core.SdkLogger
+import com.example.sdkstudydemo.provider.DemoContentProvider
 import com.example.sdkstudydemo.receiver.DemoBroadCastReceiver
 import com.example.sdkstudydemo.sdk.SdkUploadCallback
 import com.example.sdkstudydemo.service.DemoBoundService
@@ -71,6 +72,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnUnbindService: Button
 
     private lateinit var btnSendBroadcast: Button
+
+    private lateinit var btnQueryProvider: Button
     //Activity 当前拿到的 Service 对象
     private var boundService: DemoBoundService? = null
     //Activity 现在到底有没有和 Service 绑定
@@ -166,6 +169,8 @@ class MainActivity : AppCompatActivity() {
             findViewById(R.id.btnSendBroadcast)
         btnStopDemoService =
             findViewById(R.id.btnStopDemoService)
+
+        btnQueryProvider = findViewById(R.id.btnQueryProvider)
 //MainViewModel 参数为空时的调用方式
 //        mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
         //有参数时的调用方式
@@ -438,6 +443,30 @@ class MainActivity : AppCompatActivity() {
         btnRequestException.setOnClickListener {
             mainViewModel.simulateRequestException()
         }
+
+        btnQueryProvider.setOnClickListener {
+            val cursor = contentResolver.query(
+                DemoContentProvider.SDK_INFO_URI,
+                null,
+                null,
+                null,
+                null
+            )
+
+            cursor?.use{
+                val keyIndex = it.getColumnIndex(DemoContentProvider.COLUMN_KEY)
+                val valueIndex = it.getColumnIndex(DemoContentProvider.COLUMN_VALUE)
+
+                while(it.moveToNext()){
+                    val key = it.getString(keyIndex)
+                    val value = it.getString(valueIndex)
+
+                    SdkLogger.d("ContentProvider：$key = $value")
+                }
+            }
+
+        }
+
         supportFragmentManager.beginTransaction()
                 .replace(R.id.infoFragmentContainer,sdkInfoFragment)
                 .replace(R.id.fragmentContainer,sdkLogFragment)

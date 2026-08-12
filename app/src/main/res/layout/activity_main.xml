@@ -13,6 +13,11 @@
     android:orientation="vertical"
     android:padding="24dp">
     <Button
+        android:id="@+id/btnQueryProvider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="查询 ContentProvider" />
+    <Button
         android:id="@+id/btnSendBroadcast"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

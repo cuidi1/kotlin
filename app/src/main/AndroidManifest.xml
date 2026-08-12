@@ -29,6 +29,11 @@
         <service android:name=".service.DemoBoundService"
             android:exported="false"/>
 
+
+        <provider
+            android:authorities="com.example.sdkstudydemo.demo.provider"
+            android:name=".provider.DemoContentProvider"
+            android:exported="false"/>
     </application>
 
 </manifest>
