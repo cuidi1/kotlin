@@ -9,9 +9,12 @@ import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -38,9 +41,13 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import okhttp3.internal.http2.Http2Reader
 import kotlin.jvm.java
 
 class MainActivity : AppCompatActivity() {
+    private val mainHandle= Handler(
+        Looper.getMainLooper()
+    )
     private lateinit var textView: TextView
     private lateinit var buttonAgree: Button
     private lateinit var buttonCancel: Button
@@ -72,7 +79,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnUnbindService: Button
 
     private lateinit var btnSendBroadcast: Button
-
+    private lateinit var btnHandlerDemo: Button
     private lateinit var btnQueryProvider: Button
     //Activity 当前拿到的 Service 对象
     private var boundService: DemoBoundService? = null
@@ -155,6 +162,7 @@ class MainActivity : AppCompatActivity() {
         btnRequestError = findViewById(R.id.btnRequestError)
         btnRequestException = findViewById(R.id.btnRequestException)
         btnRetryCachedEvents = findViewById(R.id.btnRetryCachedEvents)
+        btnHandlerDemo = findViewById(R.id.btnHandlerDemo)
         btnBindService =
             findViewById(R.id.btnBindService)
 
@@ -190,6 +198,20 @@ class MainActivity : AppCompatActivity() {
         refreshSdkInfo()
         observeMainUiState();
 
+        btnHandlerDemo.setOnClickListener {
+            Thread{
+                SdkLogger.d("后台线程：${Thread.currentThread().name}")
+
+            Thread.sleep(2000)
+            mainHandle.post {
+                SdkLogger.d( "Handler 回调线程：${Thread.currentThread().name}")
+                Toast.makeText(
+                    this,
+                    "Handler 回到主线程",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }}.start()
+        }
 
 
         btnSendBroadcast.setOnClickListener {
