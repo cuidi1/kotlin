@@ -35,6 +35,7 @@ import com.example.sdkstudydemo.receiver.DemoBroadCastReceiver
 import com.example.sdkstudydemo.sdk.SdkUploadCallback
 import com.example.sdkstudydemo.service.DemoBoundService
 import com.example.sdkstudydemo.service.DemoService
+import com.example.sdkstudydemo.ui.day48.Day48Activity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -45,6 +46,7 @@ import okhttp3.internal.http2.Http2Reader
 import kotlin.jvm.java
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var btnOpenDay48Demo: Button
     private val mainHandle= Handler(
         Looper.getMainLooper()
     )
@@ -142,6 +144,7 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
+        btnOpenDay48Demo = findViewById(R.id.btnOpenDay48Demo)
         textView = findViewById(R.id.tvSdkInfo)
         buttonAgree = findViewById(R.id.bthAgree)
         buttonCancel = findViewById(R.id.bthCancel)
@@ -179,6 +182,10 @@ class MainActivity : AppCompatActivity() {
             findViewById(R.id.btnStopDemoService)
 
         btnQueryProvider = findViewById(R.id.btnQueryProvider)
+
+        btnOpenDay48Demo.setOnClickListener {
+            startActivity(Intent(this, Day48Activity::class.java))
+        }
 //MainViewModel 参数为空时的调用方式
 //        mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
         //有参数时的调用方式

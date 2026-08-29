@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Fragment A"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDay48FragmentInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/btnDay48FragmentScopeTask"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Fragment lifecycleScope 5秒任务"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btnDay48ViewScopeTask"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="View lifecycleScope 5秒任务"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btnDay48OpenFragmentB"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="进入 Fragment B"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="提示：启动任务后立即进入 B，再观察 Logcat 中任务完成或取消的日志。"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+</ScrollView>

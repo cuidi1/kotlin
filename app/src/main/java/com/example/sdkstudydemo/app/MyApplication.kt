@@ -1,7 +1,8 @@
 package com.example.sdkstudydemo.app
 
 import android.app.Application
-import com.example.sdkstudydemo.app.AppContainer
+import android.os.Process
+import android.util.Log
 import com.example.sdkstudydemo.sdk.MySdk
 import com.example.sdkstudydemo.sdk.SdkConfig
 import com.example.sdkstudydemo.sdk.SdkEnvironment
@@ -12,6 +13,13 @@ class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        Log.d(
+            "Day48",
+            "Application.onCreate pid=${Process.myPid()}, " +
+                "application=$this, " +
+                "applicationIdentityHashCode=${System.identityHashCode(this)}"
+        )
 
         appContainer = AppContainer(applicationContext)
 

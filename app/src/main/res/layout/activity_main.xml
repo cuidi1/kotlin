@@ -13,6 +13,13 @@
     android:orientation="vertical"
     android:padding="24dp">
     <Button
+        android:id="@+id/btnOpenDay48Demo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="进入 Day48 生命周期 Demo"
+        android:textAllCaps="false" />
+
+    <Button
         android:id="@+id/btnHandlerDemo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
