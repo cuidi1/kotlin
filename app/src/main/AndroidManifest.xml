@@ -32,10 +32,17 @@
             android:name=".ui.day49.Day49Activity"
             android:exported="true"
             android:label="Day 49 Fragment Demo" />
+        <activity
+            android:name=".ui.day50.Day50Activity"
+            android:exported="true"
+            android:label="Day 50 Service 生命周期实验室" />
         <service android:name=".service.DemoService"
             android:exported="false"/>
         <service android:name=".service.DemoBoundService"
             android:exported="false"/>
+        <service
+            android:name=".ui.day50.Day50DemoService"
+            android:exported="false" />
 
 
         <provider

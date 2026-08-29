@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Day 50 - Service 生命周期实验室"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#E3F2FD"
+            android:padding="12dp"
+            android:text="【核心概念】\n\nService 是 Android 组件，不是线程。\n\nService 解决的是：\n这项工作的生命周期属于谁、Activity 消失后是否继续存在。\n\nCoroutine 解决的是：\n异步代码怎么执行、挂起、取消。\n\nService 生命周期回调默认仍运行在主线程。\nService ≠ 后台线程。"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="当前 Service 状态"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDay50ServiceState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="#FFF8E1"
+            android:padding="12dp"
+            android:text="正在读取状态…"
+            android:textIsSelectable="true"
+            android:textSize="14sp"
+            android:typeface="monospace" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Started Service 实验"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnDay50StartService"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Start Service"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="验证 Started Service。第一次预计：onCreate → onStartCommand。"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/btnDay50StartAgain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Start Service Again"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Service 已存在时再次 start：通常不会再次 onCreate，但会再次 onStartCommand，并产生真实的新 startId。因为 onCreate 表示 Service 实例创建，已有对象不需要重新创建。"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/btnDay50StopService"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Stop Service"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Stop 只移除 Started 这个存活理由。如果仍有 Bound 客户端，Service 不会因此立即销毁。"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="Bound Service 实验"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnDay50BindService"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bind Service"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="bindService() → 若不存在则 onCreate → onBind → 返回 IBinder → onServiceConnected → Activity 获得 Service 能力。"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/btnDay50UnbindService"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Unbind Service"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="解除客户端连接。如果 Service 仍处于 Started，解绑后不会销毁。主动 unbind 通常不会触发 onServiceDisconnected。"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#F3E5F5"
+            android:padding="12dp"
+            android:text="【LocalBinder 是什么？】\n\n当前 Demo 中 Activity 与 Service 在同一个进程。\n\nLocalBinder 最终可以把 Day50DemoService 实例引用交给 Activity。\n\n所以 Activity 才能调用：\nservice.getCount()\nservice.increaseCount()\n\n今天不要把它理解成复杂跨进程 IPC。真正跨进程 Binder / AIDL 后续再学习。"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/btnDay50ReadCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:enabled="false"
+            android:text="Binder：读取 Service Count"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btnDay50IncreaseCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="Binder：Service Count +1"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:id="@+id/tvDay50BinderResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#EEEEEE"
+            android:padding="10dp"
+            android:text="Binder 未连接"
+            android:textSize="15sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="#FFF3E0"
+            android:padding="12dp"
+            android:text="【⭐⭐⭐ 今日核心实验】\n\n① Start：Started=YES，Bound=NO\n② Bind：Started=YES，Bound=YES\n③ Unbind：Started=YES，Bound=NO\n重点：此时不应因解绑立即销毁，因为 Started 理由仍存在。\n④ Stop：Started=NO，Bound=NO\n此时才预期 onDestroy。\n\nStarted 和 Bound 可以理解为 Service 的两个“存活理由”。\n\nDemoService\nStarted ─── startService / stopService\nBound ───── bindService / unbindService\n\n至少一个存在 → Service 仍可能存活\n两者都没有 → Service 可以销毁"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="#E8F5E9"
+            android:padding="12dp"
+            android:text="【Started / Bound 对比】\n\nStarted Service｜关键词：独立运行\nstartService → Service 工作 → stopService / stopSelf\n客户端不需要一直与它连接。\n\nBound Service｜关键词：连接 / 交互\nbindService → 获得 Binder → Activity 调用 Service 方法 → unbindService\n重点不是“启动后台任务”，而是建立连接。"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#FFEBEE"
+            android:padding="12dp"
+            android:text="【MS-50-01：Service 是线程吗？】\n\n不是。Service 是 Android 组件。onCreate、onStartCommand、onBind 等回调默认仍在主线程。\n\n如果直接在回调中 Thread.sleep 或做重 IO，仍会阻塞主线程甚至造成 ANR。请观察日志中的 thread=main。"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#E0F7FA"
+            android:padding="12dp"
+            android:text="【Activity 生命周期实验】\n\nStart Service 后按返回退出本页面。Activity 会 onPause → onStop → onDestroy，但 Started Service 不会因为 Activity 消失就自动停止。\n\nActivity 销毁时会安全 unbind，避免连接泄漏；这个清理不会调用 stopService。"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#EDE7F6"
+            android:padding="12dp"
+            android:text="【Foreground Service 概念卡】\n\n适合用户明确感知的持续任务，例如音乐播放、导航、运动记录。\n\nForeground 不是“前台线程”。它仍然是 Service，生命周期回调默认仍在主线程，通常需要持续通知。现代 Android 对后台 Service 和 Foreground Service 有较严格限制。"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#F1F8E9"
+            android:padding="12dp"
+            android:text="【怎么选？】\n\nCoroutine：异步代码如何执行、挂起、取消，例如页面请求接口。\n\nService：工作生命周期是否独立于 Activity，例如音乐播放。\n\nForeground Service：用户明确感知的持续任务，例如导航、播放。\n\nWorkManager：需要保证稍后最终执行、不要求现在一直运行的后台任务。\n\nService ≠ Coroutine\nService ≠ Thread\nForeground Service ≠ 前台线程"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="生命周期事件日志"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnDay50ClearLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="清空页面日志"
+            android:textAllCaps="false" />
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/day50EventLogScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="280dp"
+            android:background="#212121"
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/tvDay50EventLog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="暂无日志，请从上方按钮开始实验。"
+                android:textColor="#FFFFFF"
+                android:textIsSelectable="true"
+                android:textSize="12sp"
+                android:typeface="monospace" />
+
+        </androidx.core.widget.NestedScrollView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="#ECEFF1"
+            android:padding="12dp"
+            android:text="【MS 复习卡】\n\nMS-50-02 第一次 startService？\nService 不存在时：onCreate → onStartCommand。\n\nMS-50-03 bindService 链路？\nbindService → onCreate（如果需要）→ onBind → Binder → onServiceConnected。\n\nMS-50-04 Started / Bound 最大区别？\nStarted 强调独立运行；Bound 强调连接与交互。\n\nMS-50-05 Activity 销毁，Service 一定销毁吗？\n不一定，要看是否还有 Started 或 Bound 理由。\n\nMS-50-06 Service 可以同时 Started + Bound 吗？\n可以。\n\nMS-50-07 LocalBinder 的作用？\n同进程下把 Service 能力暴露给 Activity。\n\nMS-50-08 Foreground Service 是前台线程吗？\n不是。\n\nMS-50-09 Service 默认回调线程？\n主线程。\n\nMS-50-10 Coroutine、Service、WorkManager 怎么选？\n根据异步执行、组件生命周期、延迟保证执行等需求选择。"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -37,6 +37,7 @@ import com.example.sdkstudydemo.service.DemoBoundService
 import com.example.sdkstudydemo.service.DemoService
 import com.example.sdkstudydemo.ui.day48.Day48Activity
 import com.example.sdkstudydemo.ui.day49.Day49Activity
+import com.example.sdkstudydemo.ui.day50.Day50Activity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -48,10 +49,12 @@ import kotlin.jvm.java
 
 class MainActivity : AppCompatActivity() {
     private lateinit var btnOpenDay48Demo: Button
+    private lateinit var btnHandlerDemo: Button
     private val mainHandle= Handler(
         Looper.getMainLooper()
     )
     private lateinit var btnOpenDay49Demo: Button
+    private lateinit var btnOpenDay50Demo: Button
     private lateinit var textView: TextView
     private lateinit var buttonAgree: Button
     private lateinit var buttonCancel: Button
@@ -148,6 +151,7 @@ class MainActivity : AppCompatActivity() {
 
         btnOpenDay48Demo = findViewById(R.id.btnOpenDay48Demo)
         btnOpenDay49Demo = findViewById(R.id.btnOpenDay49Demo)
+        btnOpenDay50Demo = findViewById(R.id.btnOpenDay50Demo)
         textView = findViewById(R.id.tvSdkInfo)
         buttonAgree = findViewById(R.id.bthAgree)
         buttonCancel = findViewById(R.id.bthCancel)
@@ -191,6 +195,9 @@ class MainActivity : AppCompatActivity() {
         }
         btnOpenDay49Demo.setOnClickListener {
             startActivity(Intent(this, Day49Activity::class.java))
+        }
+        btnOpenDay50Demo.setOnClickListener {
+            startActivity(Intent(this, Day50Activity::class.java))
         }
 //MainViewModel 参数为空时的调用方式
 //        mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
