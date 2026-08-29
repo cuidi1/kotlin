@@ -28,6 +28,10 @@
             android:name=".ui.day48.Day48Activity"
             android:exported="true"
             android:label="Day 48 生命周期 Demo" />
+        <activity
+            android:name=".ui.day49.Day49Activity"
+            android:exported="true"
+            android:label="Day 49 Fragment Demo" />
         <service android:name=".service.DemoService"
             android:exported="false"/>
         <service android:name=".service.DemoBoundService"

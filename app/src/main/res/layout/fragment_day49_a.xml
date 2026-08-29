@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Fragment A"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDay49ACount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="当前共享 count：0"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tvDay49ACity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="当前选择的城市：未选择"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btnDay49AIncrease"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="共享 count +1"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btnDay49OpenB"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="进入 Fragment B"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:id="@+id/tvDay49ADebug"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="#EEEEEE"
+            android:padding="10dp"
+            android:textIsSelectable="true"
+            android:textSize="12sp"
+            android:typeface="monospace" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="实验提示：\n1. count 点到 3，再进入 B，观察 B 是否直接为 3。\n2. B 再 +1 并返回，观察 A 是否为 4。\n3. B 选择成都并返回，观察 A 收到一次 Fragment Result。\n4. 再进入 B，只 popBackStack，观察能返回但没有新 Result。\n5. Logcat 搜索 Day49，比较 FragmentManager、ViewModel 和 Fragment/View identity。\n\nSharedViewModel：适合 A/B 持续共享和修改同一份状态。\nFragment Result：适合 B 向 A 返回一次性结果。"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+</ScrollView>

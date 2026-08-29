@@ -20,6 +20,13 @@
         android:textAllCaps="false" />
 
     <Button
+        android:id="@+id/btnOpenDay49Demo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="进入 Day49 Fragment 学习 Demo"
+        android:textAllCaps="false" />
+
+    <Button
         android:id="@+id/btnHandlerDemo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
