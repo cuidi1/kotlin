@@ -34,6 +34,13 @@
         android:textAllCaps="false" />
 
     <Button
+        android:id="@+id/btnOpenDay51Demo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="进入 Day51 Receiver 与 WorkManager 实验室"
+        android:textAllCaps="false" />
+
+    <Button
         android:id="@+id/btnHandlerDemo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

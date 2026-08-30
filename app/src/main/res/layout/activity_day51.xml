@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Day 51 - BroadcastReceiver &amp; WorkManager 实验室"
+            android:textSize="23sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#E3F2FD"
+            android:padding="12dp"
+            android:text="【BroadcastReceiver 核心概念】\n\nBroadcastReceiver 用于：\n“某件事情发生了，通知我一下。”\n\n适合：短时间接收事件通知。\n不适合：自己承载长时间后台任务。\n\nSender\n  ↓\nIntent(action)\n  ↓\nAndroid 广播系统\n  ↓\nIntentFilter\n  ↓\nBroadcastReceiver\n  ↓\nonReceive()\n\nIntent.action = 这个广播是什么类型\nIntentFilter = Receiver 对哪些 action 感兴趣"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/tvDay51Actions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="#EEEEEE"
+            android:padding="10dp"
+            android:textIsSelectable="true"
+            android:textSize="12sp"
+            android:typeface="monospace" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="实验 1：动态注册 Receiver"
+            android:textSize="21sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#E8F5E9"
+            android:padding="12dp"
+            android:text="【概念】\n动态 Receiver 通过代码 registerReceiver() 建立监听关系，不使用时必须 unregisterReceiver()。\n\n【操作步骤】\nRegister → Send → 观察 main 线程 → Unregister → 再 Send。\n\n【预期结果】\n注册期间能收到；解除注册后不再收到。\n\n【为什么】\nIntentFilter 只把匹配 action 的广播交给当前已注册 Receiver。"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tvDay51DynamicState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="#FFF8E1"
+            android:padding="12dp"
+            android:text="Registered = NO"
+            android:textIsSelectable="true"
+            android:textSize="14sp"
+            android:typeface="monospace" />
+
+        <Button
+            android:id="@+id/btnDay51RegisterDynamic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Register Dynamic Receiver"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btnDay51SendDynamic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Send Dynamic Broadcast"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btnDay51UnregisterDynamic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Unregister Dynamic Receiver"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="#263238"
+            android:padding="12dp"
+            android:text="【本页实际核心代码】\n\nContextCompat.registerReceiver(\n    this, receiver,\n    IntentFilter(dynamicAction),\n    ContextCompat.RECEIVER_NOT_EXPORTED\n)\n\nsendBroadcast(\n    Intent(dynamicAction).setPackage(packageName)\n)\n\nunregisterReceiver(receiver)"
+            android:textColor="#FFFFFF"
+            android:textIsSelectable="true"
+            android:textSize="12sp"
+            android:typeface="monospace" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="#FFEBEE"
+            android:padding="12dp"
+            android:text="【重点】\nBroadcastReceiver.onReceive() 默认在主线程执行。\nBroadcastReceiver ≠ 后台线程。\n\nRECEIVER_NOT_EXPORTED：本 Demo 的动态广播只准备在 App 内使用，不希望普通外部 App 随意发送。"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="#F3E5F5"
+            android:padding="12dp"
+            android:text="【Receiver 应该活多久？】\n\n只需 Activity 可见时：onStart 注册、onStop 解除。\n整个 Activity 实例期间：onCreate 注册、onDestroy 解除。\n\n不是死背固定回调，真正的问题是 Receiver 应该活多久。当前 Demo 用手动按钮方便观察，但 onDestroy 会做安全清理。\n\nMS-51-04｜忘记 unregister 为什么可能泄漏？\n系统注册关系 → Receiver → Activity Context。Activity 结束后不解除，Context 可能无法及时回收。\n\nregister ↔ unregister\n和 bindService ↔ unbindService 是类似的资源生命周期思想。"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="实验 2：Manifest 静态 Receiver"
+            android:textSize="21sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#E0F7FA"
+            android:padding="12dp"
+            android:text="【概念】\n静态 Receiver 在 AndroidManifest.xml 的 &lt;receiver&gt; 中声明，不需要 Activity 调用 registerReceiver，也不需要 Activity unregister。它可以成为 App 的入口。\n\n【操作步骤】\n点击 Send Static Broadcast；再按下方 ADB 步骤杀掉后台进程并发送显式广播。\n\n【预期结果】\nStaticReceiver.onReceive 显示 action、main 线程和 pid。进程不存在时，系统可为 Receiver 创建新进程。\n\n【为什么】\n系统通过 Manifest 知道 Receiver 的存在。现代 Android 限制许多隐式广播，不能把老教程理解成“任何广播都能静态注册”。"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tvDay51StaticState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="#FFF8E1"
+            android:padding="12dp"
+            android:text="Received Count = 0"
+            android:textIsSelectable="true"
+            android:textSize="14sp"
+            android:typeface="monospace" />
+
+        <Button
+            android:id="@+id/btnDay51SendStatic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Send Static Broadcast"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="#263238"
+            android:padding="12dp"
+            android:text="【本页实际 Manifest 代码】\n\n&lt;receiver\n    android:name=&quot;.ui.day51.Day51StaticReceiver&quot;\n    android:exported=&quot;true&quot;\n    android:permission=&quot;android.permission.DUMP&quot;&gt;\n    &lt;intent-filter&gt;\n        &lt;action android:name=&quot;...DAY51_STATIC&quot; /&gt;\n    &lt;/intent-filter&gt;\n&lt;/receiver&gt;"
+            android:textColor="#FFFFFF"
+            android:textIsSelectable="true"
+            android:textSize="12sp"
+            android:typeface="monospace" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="#FFF3E0"
+            android:padding="12dp"
+            android:text="【⭐⭐⭐ App 进程不存在时的 Manifest Receiver】\n\n1. 打开本页面一次。\n2. 按 Home。\n3. 执行 am kill，不能用 force-stop。\n4. 用下方显式组件广播。\n5. Logcat 搜索 Day51，观察 StaticReceiver.onReceive 和新 pid。\n\nManifest Receiver 可以成为 App 入口：没有 Activity、甚至进程原本不存在，也可能因为广播而创建进程。\n\n安全设计：该 Receiver exported=true 只为 ADB 实验，同时要求系统签名级 android.permission.DUMP。adb shell 具备，普通第三方 App 不具备。"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDay51AdbCommands"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#212121"
+            android:padding="12dp"
+            android:textColor="#FFFFFF"
+            android:textIsSelectable="true"
+            android:textSize="12sp"
+            android:typeface="monospace" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="实验 3：Receiver 中 new Thread 为什么不可靠？"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFEBEE"
+            android:padding="12dp"
+            android:text="【概念】\n系统因广播提高进程重要性 → onReceive → 偷偷启动普通 Thread → onReceive 很快 return → 系统认为广播处理结束 → 若无其他重要组件，进程优先级下降 → 内存紧张时整个进程可能被杀 → Thread 一起消失。\n\nAndroid 不会因为你偷偷 new 了一个普通 Thread，就承诺为了这个 Thread 一直保留 App 进程。\n\n【操作步骤】\n点击按钮 → 按 Home → 看每秒日志 → 10 秒内执行 am kill。\n\n【预期结果】\n不杀进程时 Thread 很可能跑完；杀进程后后续日志消失。成功不代表可靠。\n\n【为什么】\n这不是 Android 单独取消 Thread，而是整个 Linux App Process 被终止；主线程、工作线程和所有内存对象一起消失。"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/btnDay51UnsafeThread"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Unsafe：Receiver 启动 10 秒 Thread"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="实验 4：WorkManager 可靠后台任务"
+            android:textSize="21sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#E8F5E9"
+            android:padding="12dp"
+            android:text="【概念】\nWorkManager 表达的是：“不要求这一秒执行，但希望系统以后满足条件时仍然调度它。”\n\n适合：日志上传、数据同步、缓存清理、失败重试、有网后执行。\n不适合：实时音乐播放、实时导航。\n\n【操作步骤】\nSchedule → 观察真实 ENQUEUED → 按 Home → Worker 开始前 am kill → 等待系统调度 → 重进页面。\n\n【预期结果】\n同一个 Work ID 的官方状态可继续变为 RUNNING / SUCCEEDED，时间并不保证固定。\n\n【为什么】\nWorkManager 保存和调度的是工作任务，不是保证某一个 Thread 永远活着。Process 死亡后任务记录仍可存在，系统以后可重建进程执行 Worker。"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/btnDay51ScheduleWork"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Schedule Reliable Work"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="#263238"
+            android:padding="12dp"
+            android:text="【本页实际核心代码】\n\nval constraints = Constraints.Builder()\n    .setRequiredNetworkType(NetworkType.CONNECTED)\n    .build()\n\nval request = OneTimeWorkRequest.Builder(\n    Day51UploadWorker::class.java\n)\n    .setConstraints(constraints)\n    .setInitialDelay(12, TimeUnit.SECONDS)\n    .build()\n\nWorkManager.getInstance(context).enqueue(request)"
+            android:textColor="#FFFFFF"
+            android:textIsSelectable="true"
+            android:textSize="12sp"
+            android:typeface="monospace" />
+
+        <TextView
+            android:id="@+id/tvDay51WorkState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFF8E1"
+            android:padding="12dp"
+            android:text="Work ID：—\nWork State：尚未调度"
+            android:textIsSelectable="true"
+            android:textSize="14sp"
+            android:typeface="monospace" />
+
+        <TextView
+            android:id="@+id/tvDay51WorkerResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="#EEEEEE"
+            android:padding="12dp"
+            android:text="Last Worker Result：尚未执行"
+            android:textIsSelectable="true"
+            android:textSize="13sp"
+            android:typeface="monospace" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#FFF8E1"
+            android:padding="12dp"
+            android:text="【⭐⭐⭐ 实验 5：进程结束后 Work 还在吗？】\n\n【操作步骤】\n1. 点击 Schedule Reliable Work，先确认官方状态为 ENQUEUED。\n2. 按 Home。\n3. Worker 开始前执行：adb shell am kill com.example.sdkstudydemo\n4. 等待真实系统调度，再重新进入本页。\n5. 核对同一个 Work ID 的官方状态和 Last Worker Result。\n\n【预期结果】\n任务记录仍可存在，系统以后可重新创建 App 进程执行 Worker；调度时间不保证固定。\n\n【为什么】\n普通 Thread：Process 死 → Thread 和内存任务一起消失。\nWorkManager：任务已 enqueue → 任务记录仍可存在 → 系统以后重新调度 Worker。\n\n正确说法：WorkManager 保存和调度的是工作任务，不是保证某一个 Thread 永远活着。"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnDay51RefreshState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="刷新 Static / Work 状态"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#EDE7F6"
+            android:padding="12dp"
+            android:text="【JobScheduler 与 WorkManager】\n\nJobScheduler：Android Framework 原生系统任务调度器，可按网络、充电、空闲等条件调度 Job。\n\nWorkManager：Jetpack 更高层可靠后台任务 API，会按系统版本选择底层调度机制；现代 Android 上通常利用 JobScheduler。\n\nApp 业务代码 → WorkManager → 系统调度机制 → JobScheduler（现代 Android）\n\n当前阶段掌握 WorkManager；JobScheduler 知道作用和关系即可。"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="组合实验：Receiver → enqueue WorkManager"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#E0F7FA"
+            android:padding="12dp"
+            android:text="【推荐思路】\nBroadcastReceiver：“事件发生了，我知道了。”\nWorkManager：“真正可靠的后台工作交给我。”\n\n【操作步骤】点击按钮，观察 Receiver START → enqueue → RETURN，然后稍后 Worker START → SUCCESS。\n\n【预期结果】onReceive 快速返回，可靠任务由 WorkManager 保存和调度。\n\n【为什么】Receiver 只负责短事件入口，不自己承载耗时工作。"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/btnDay51ReceiverEnqueueWork"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Receiver 收到事件 → enqueue WorkManager"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="#263238"
+            android:padding="12dp"
+            android:text="【本页实际核心代码】\n\noverride fun onReceive(context: Context, intent: Intent) {\n    Day51UploadWorker.enqueue(\n        context, source = &quot;BroadcastReceiver&quot;\n    )\n    // enqueue 后立即结束，不在 Receiver 中耗时\n}"
+            android:textColor="#FFFFFF"
+            android:textIsSelectable="true"
+            android:textSize="12sp"
+            android:typeface="monospace" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#F3E5F5"
+            android:padding="12dp"
+            android:text="【Receiver / Service / WorkManager】\n\nBroadcastReceiver｜事件通知｜生命周期非常短｜onReceive 快速处理后结束。\n\nService｜持续组件生命周期｜音乐、导航、脱离 Activity 持续存在。\n\nWorkManager｜可靠延迟后台工作｜上传、同步、重试。\n\nReceiver ≠ Service\nReceiver ≠ Thread\nWorkManager ≠ 不死 Thread"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#FFF3E0"
+            android:padding="12dp"
+            android:text="【goAsync() 概念卡】\n\ngoAsync() 允许 onReceive 返回后，广播相关的少量异步工作暂时继续，最后必须调用 PendingResult.finish()。\n\n但 goAsync() ≠ 无限后台执行资格。较长或需要可靠执行的任务，应考虑 WorkManager 等机制。"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="生命周期 / 调度事件日志"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnDay51ClearLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Clear Log"
+            android:textAllCaps="false" />
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:background="#212121"
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/tvDay51EventLog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="暂无日志，请从页面按钮开始实验。"
+                android:textColor="#FFFFFF"
+                android:textIsSelectable="true"
+                android:textSize="12sp"
+                android:typeface="monospace" />
+
+        </androidx.core.widget.NestedScrollView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="#ECEFF1"
+            android:padding="12dp"
+            android:text="【MS 复习卡】\n\nMS-51-01｜BroadcastReceiver 是什么？\n接收广播事件通知的 Android 组件。\n\nMS-51-02｜action / IntentFilter？\naction 是广播类型；IntentFilter 是 Receiver 感兴趣的 action。\n\nMS-51-03｜动态 / 静态 Receiver？\n动态用代码注册并跟 Context 生命周期管理；静态在 Manifest 声明，可作为 App 入口，但受现代隐式广播限制。\n\nMS-51-05｜onReceive 默认线程？\n主线程。\n\nMS-51-06｜为什么不能做 20 秒任务？\n默认主线程且应快速返回，否则卡顿甚至 ANR。\n\nMS-51-07｜为什么 new Thread 不可靠？\nonReceive 返回后进程可能失去重要性，整个 Process 被杀时普通 Thread 一起死亡。\n\nMS-51-08｜WorkManager 解决什么？\n需要以后可靠调度，但不要求当前进程一直存活的后台工作。\n\nMS-51-09｜WorkManager / JobScheduler？\n后者是 Framework 调度器；前者是 Jetpack 高层 API，现代 Android 上可使用 JobScheduler。\n\nMS-51-10｜Receiver / Service？\nReceiver 是短事件通知；Service 是持续组件生命周期。"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#FFEBEE"
+            android:padding="12dp"
+            android:text="【真实行为提醒】\n\n• WorkManager 是否立即执行以真实系统调度为准。\n• 普通 Thread 在开发机跑完不代表可靠。\n• am kill 后重新调度时间不固定。\n• force-stop 与普通进程回收不同，本实验不要 force-stop。\n• Manifest 广播在不同 Android 版本有限制。\n• 部分厂商的后台启动管理可能拦截进程不存在时的广播启动；以页面持久化计数和真实 Day51 日志为准，不伪造唤起结果。"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
