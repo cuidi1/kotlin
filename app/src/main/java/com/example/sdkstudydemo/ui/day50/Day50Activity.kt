@@ -9,8 +9,8 @@ import android.os.IBinder
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -22,12 +22,13 @@ class Day50Activity : AppCompatActivity() {
     private lateinit var stateView: TextView
     private lateinit var binderResultView: TextView
     private lateinit var eventLogView: TextView
-    private lateinit var eventLogScrollView: NestedScrollView
+    private lateinit var destroyExperimentHintView: TextView
     private lateinit var readCountButton: Button
     private lateinit var increaseCountButton: Button
 
     private var demoService: Day50DemoService? = null
     private var isBound = false
+    private var didStartServiceInThisActivity = false
 
     private val serviceIntent: Intent
         get() = Intent(this, Day50DemoService::class.java)
@@ -61,7 +62,7 @@ class Day50Activity : AppCompatActivity() {
         stateView = findViewById(R.id.tvDay50ServiceState)
         binderResultView = findViewById(R.id.tvDay50BinderResult)
         eventLogView = findViewById(R.id.tvDay50EventLog)
-        eventLogScrollView = findViewById(R.id.day50EventLogScrollView)
+        destroyExperimentHintView = findViewById(R.id.tvDay50DestroyExperimentHint)
         readCountButton = findViewById(R.id.btnDay50ReadCount)
         increaseCountButton = findViewById(R.id.btnDay50IncreaseCount)
 
@@ -93,9 +94,40 @@ class Day50Activity : AppCompatActivity() {
     override fun onDestroy() {
         recordActivityEvent("Activity.onDestroy [thread=${Thread.currentThread().name}]")
 
+        val wasBound = isBound
         if (isBound) {
             // Activity 销毁只清理自己的 Bound 连接，不能顺便停止 Started Service。
-            safeUnbind("Activity.onDestroy 自动 unbind；没有调用 stopService")
+            safeUnbind(
+                "Activity.onDestroy：主动 unbindService()；这里只解除 Bound 连接，" +
+                    "不会调用 stopService，所以 Started 状态应该继续存在"
+            )
+        }
+
+        if (wasBound) {
+            val stateAfterUnbind = Day50ServiceLog.state.value
+            val message = buildString {
+                appendLine("Activity 已销毁并执行 unbindService()")
+                appendLine(
+                    "Started=${stateAfterUnbind.started.toYesNo()}，" +
+                        "Bound=${stateAfterUnbind.bound.toYesNo()}"
+                )
+                append(
+                    when {
+                        stateAfterUnbind.started && didStartServiceInThisActivity ->
+                            "本次 Activity 调用过 startService()"
+
+                        stateAfterUnbind.started ->
+                            "本次 Activity 没有调用 Start；Service 在进入本页面前就已经 Started"
+
+                        else ->
+                            "当前没有 Started 存活理由"
+                    }
+                )
+                if (stateAfterUnbind.started && !stateAfterUnbind.bound) {
+                    append("\nService 仍因 Started 理由存活")
+                }
+            }
+            Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
         }
 
         super.onDestroy()
@@ -119,16 +151,7 @@ class Day50Activity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btnDay50BindService).setOnClickListener {
-            if (isBound) {
-                recordActivityEvent("忽略重复 Bind：当前 Activity 已注册连接")
-                return@setOnClickListener
-            }
-
-            recordActivityEvent("点击 Bind Service：调用 bindService(BIND_AUTO_CREATE)")
-            isBound = bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE)
-            if (!isBound) {
-                recordActivityEvent("bindService() 返回 false，连接未建立")
-            }
+            bindDemoService("点击 Bind Service")
         }
 
         findViewById<Button>(R.id.btnDay50UnbindService).setOnClickListener {
@@ -164,20 +187,56 @@ class Day50Activity : AppCompatActivity() {
         findViewById<Button>(R.id.btnDay50ClearLog).setOnClickListener {
             Day50ServiceLog.clearEvents()
         }
+
+        findViewById<Button>(R.id.btnDay50StartAndBind).setOnClickListener {
+            recordActivityEvent("实验5：点击 Start + Bind")
+
+            if (!Day50ServiceLog.state.value.started) {
+                startDemoService("实验5：调用 Start Service")
+            } else {
+                recordActivityEvent("实验5：Started 已经是 YES，不重复 startService")
+            }
+
+            if (!isBound) {
+                bindDemoService("实验5：调用 Bind Service")
+            } else {
+                recordActivityEvent("实验5：当前 Activity 已绑定，不重复 bindService")
+            }
+        }
+
+        findViewById<Button>(R.id.btnDay50FinishActivity).setOnClickListener {
+            recordActivityEvent("实验5：点击 Finish Activity；只调用 finish()，没有 stopService()")
+            finish()
+        }
     }
 
     private fun startDemoService(actionName: String) {
         val componentName = startService(serviceIntent)
+        didStartServiceInThisActivity = true
         Day50ServiceLog.markStartRequested()
         recordActivityEvent("$actionName：startService() 返回 $componentName")
+        renderState(Day50ServiceLog.state.value)
+    }
+
+    private fun bindDemoService(actionName: String) {
+        if (isBound) {
+            recordActivityEvent("忽略重复 Bind：当前 Activity 已注册连接")
+            return
+        }
+
+        recordActivityEvent("$actionName：调用 bindService(BIND_AUTO_CREATE)")
+        isBound = bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE)
+        if (!isBound) {
+            recordActivityEvent("bindService() 返回 false，连接未建立")
+        }
     }
 
     private fun safeUnbind(reason: String) {
         if (!isBound) return
 
+        recordActivityEvent(reason)
         try {
             unbindService(connection)
-            recordActivityEvent(reason)
         } catch (exception: IllegalArgumentException) {
             recordActivityEvent("unbindService 被系统判定为未注册：${exception.message}")
         } finally {
@@ -201,9 +260,6 @@ class Day50Activity : AppCompatActivity() {
                         } else {
                             events.joinToString(separator = "\n")
                         }
-                        eventLogScrollView.post {
-                            eventLogScrollView.fullScroll(NestedScrollView.FOCUS_DOWN)
-                        }
                     }
                 }
             }
@@ -217,6 +273,10 @@ class Day50Activity : AppCompatActivity() {
             appendLine("Started 状态：${state.started.toYesNo()}")
             appendLine("Bound 状态：${state.bound.toYesNo()}")
             appendLine("Activity 是否拿到 Binder：${state.binderConnected.toYesNo()}")
+            appendLine(
+                "本次 Activity 是否调用过 startService：" +
+                    didStartServiceInThisActivity.toYesNo()
+            )
             appendLine("Service identityHashCode：${state.serviceIdentity ?: "—"}")
             appendLine("Service 最近回调线程：${state.currentThread}")
             appendLine()
@@ -233,6 +293,25 @@ class Day50Activity : AppCompatActivity() {
         val binderAvailable = state.binderConnected && demoService != null
         readCountButton.isEnabled = binderAvailable
         increaseCountButton.isEnabled = binderAvailable
+
+        destroyExperimentHintView.text = when {
+            state.started && state.bound && state.binderConnected ->
+                "当前已确认：Started = YES，Bound = YES。\n下一步点击 Finish Activity。"
+
+            state.started && !state.bound ->
+                "Service 之前已经被 Start，但当前 Activity 尚未绑定：\n" +
+                    "Started = YES，Bound = NO。\n" +
+                    "这正是 Activity 销毁并 unbind 后重新进入时应看到的状态。"
+
+            state.started && state.bound ->
+                "Started = YES，Bound = YES，正在等待 onServiceConnected。"
+
+            !state.started && state.bound ->
+                "当前只有 Bound 理由。请先 Start，再做 Activity 销毁实验。"
+
+            else ->
+                "请先点击“Start + Bind，然后销毁 Activity”。"
+        }
     }
 
     private fun recordActivityEvent(message: String) {

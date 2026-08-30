@@ -49,6 +49,13 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="注意：Started 是 Service 的全局生命周期状态，不是“本次进入页面是否点过 Start”的记录。页面会单独显示这两个信息。"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="Started Service 实验"
             android:textSize="20sp"
@@ -205,6 +212,56 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="#FFF3E0"
+            android:padding="12dp"
+            android:text="【⭐⭐⭐ Activity 销毁实验】\n\nstartService()：\n是一次启动命令。命令发出后，Service 的 Started 状态不依赖启动它的 Activity 后续是否存在。\n\nbindService()：\n是客户端和 Service 的连接关系。Activity 销毁时应该解除这条连接。\n\nActivity\n  │\n  ├── startService() → Started = YES\n  │\n  └── bindService()  → Bound = YES\n\nActivity 销毁\n  ↓\nActivity 主动 unbind\n  ↓\nStarted = YES，Bound = NO\n  ↓\nService 仍然存活\n\n之后 stopService()\n  ↓\nStarted = NO，Bound = NO\n  ↓\nService 可以 onDestroy"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnDay50StartAndBind"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Start + Bind，然后销毁 Activity"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:id="@+id/tvDay50DestroyExperimentHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFF8E1"
+            android:padding="10dp"
+            android:text="请先点击“Start + Bind，然后销毁 Activity”。"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/btnDay50FinishActivity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Finish Activity（不会 Stop Service）"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="点击后只调用 finish()。onDestroy 会主动 unbind，但绝不会调用 stopService。重新进入 Day50 后应看到 Started=YES、Bound=NO；再 Bind 可比较同一个进程存活期间的 serviceId。Started 是生命周期语义，不代表进程物理上永远不会被系统杀。"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#FFEBEE"
+            android:padding="12dp"
+            android:text="【常见错误】\n\n错误：启动 Service 的 Activity 销毁了，所以 startService() 也失效。\n正确：Started 状态属于 Service 自己，不会因为调用它的 Activity 销毁而自动消失。\n\n错误：Activity 销毁后 Bound 也可以不用管。\n正确：bindService() 是连接关系，不再需要时应该显式 unbindService()。\n\n错误：unbindService() 等于 stopService()。\n正确：unbindService() 只解除 Bound；stopService() 只移除 Started。它们是两把不同的钥匙。"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:background="#EDE7F6"
             android:padding="12dp"
@@ -262,6 +319,15 @@
             android:background="#ECEFF1"
             android:padding="12dp"
             android:text="【MS 复习卡】\n\nMS-50-02 第一次 startService？\nService 不存在时：onCreate → onStartCommand。\n\nMS-50-03 bindService 链路？\nbindService → onCreate（如果需要）→ onBind → Binder → onServiceConnected。\n\nMS-50-04 Started / Bound 最大区别？\nStarted 强调独立运行；Bound 强调连接与交互。\n\nMS-50-05 Activity 销毁，Service 一定销毁吗？\n不一定，要看是否还有 Started 或 Bound 理由。\n\nMS-50-06 Service 可以同时 Started + Bound 吗？\n可以。\n\nMS-50-07 LocalBinder 的作用？\n同进程下把 Service 能力暴露给 Activity。\n\nMS-50-08 Foreground Service 是前台线程吗？\n不是。\n\nMS-50-09 Service 默认回调线程？\n主线程。\n\nMS-50-10 Coroutine、Service、WorkManager 怎么选？\n根据异步执行、组件生命周期、延迟保证执行等需求选择。"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="#FFF8E1"
+            android:padding="12dp"
+            android:text="【Activity 销毁复习卡】\n\nMS-50-15｜Activity 调用 startService + bindService 后销毁，会发生什么？\nActivity 应解除 Bound；但 startService 不会自动撤销，所以 Started 仍存在，Service 仍可继续运行。\n\nMS-50-16｜unbindService 和 stopService 是一回事吗？\n不是。unbindService 解除连接；stopService 移除 Started 状态。\n\nMS-50-17｜为什么 Activity 销毁后 Started Service 还能继续？\n因为 startService 是一次启动命令。Service 进入 Started 状态后，不依赖最初 Activity 是否继续存在。"
             android:textSize="14sp" />
 
     </LinearLayout>
