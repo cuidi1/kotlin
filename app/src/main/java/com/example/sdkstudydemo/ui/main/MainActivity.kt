@@ -39,6 +39,7 @@ import com.example.sdkstudydemo.ui.day48.Day48Activity
 import com.example.sdkstudydemo.ui.day49.Day49Activity
 import com.example.sdkstudydemo.ui.day50.Day50Activity
 import com.example.sdkstudydemo.ui.day51.Day51Activity
+import com.example.sdkstudydemo.ui.eventmonitor.EventMonitorActivity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -82,6 +83,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var btnStartDemoService: Button
     private lateinit var btnStopDemoService: Button
+
+    private lateinit var btnOpenDay58Demo: Button
 
     private lateinit var btnBindService: Button
     private lateinit var btnCallService: Button
@@ -176,6 +179,7 @@ class MainActivity : AppCompatActivity() {
         btnRequestException = findViewById(R.id.btnRequestException)
         btnRetryCachedEvents = findViewById(R.id.btnRetryCachedEvents)
         btnHandlerDemo = findViewById(R.id.btnHandlerDemo)
+        btnOpenDay58Demo = findViewById(R.id.btnOpenDay58Demo)
         btnBindService =
             findViewById(R.id.btnBindService)
 
@@ -223,7 +227,14 @@ class MainActivity : AppCompatActivity() {
         )[MainViewModel::class.java]
         refreshSdkInfo()
         observeMainUiState();
-
+        btnOpenDay58Demo.setOnClickListener {
+            startActivity(
+                Intent(
+                    this,
+                    EventMonitorActivity::class.java
+                )
+            )
+        }
         btnHandlerDemo.setOnClickListener {
             Thread{
                 SdkLogger.d("后台线程：${Thread.currentThread().name}")
