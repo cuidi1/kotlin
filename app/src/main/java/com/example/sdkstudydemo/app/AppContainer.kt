@@ -16,6 +16,9 @@ import com.example.sdkstudydemo.event.policy.SdkQueueLimitPolicy
 import com.example.sdkstudydemo.config.SdkRemoteCongfigDataSource
 import com.example.sdkstudydemo.repository.SdkRepository
 import com.example.sdkstudydemo.event.policy.SdkRetryPolicy
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 //依赖容器
 class AppContainer(
@@ -47,10 +50,15 @@ class AppContainer(
     val pendingEventStore: SdkPendingEventStore by lazy {
         DataStoreSdkPendingEventStore(appContext)
     }
+    val sdkCoroutineScope: CoroutineScope by lazy {
+        CoroutineScope(SupervisorJob()+ Dispatchers.Default)
+    }
     val eventRetryQueue: SdkEventRetryQueue by lazy{
         SdkEventRetryQueue(
             queueLimitPolicy,
-            pendingEventStore
+            pendingEventStore,
+            sdkCoroutineScope
+
         )
     }
     //by lazy是kotlin懒加载，第一次用的时候才创建，创建一次后报错起来，以后直接返回同一个对象
