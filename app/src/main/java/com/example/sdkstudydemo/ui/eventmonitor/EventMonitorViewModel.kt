@@ -8,10 +8,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class EventMonitorViewModel: ViewModel() {
+    //一个事件状态的stateflow
     private val _uiState= MutableStateFlow<EventMonitorUiState>(
         EventMonitorUiState.Idle
     )
     val uiState = _uiState.asStateFlow()
+
+    //注意和上述声明区分开来，一个事件列表的stateflow
+    private val _eventLogs = MutableStateFlow<List<EventLogItem>>(emptyList())
+
+    val eventLogs = _eventLogs.asStateFlow()
     fun upload(eventName:String){
         viewModelScope.launch {
             // 1. 开始上传
@@ -33,6 +39,10 @@ class EventMonitorViewModel: ViewModel() {
                     EventMonitorUiState.Error(
                         "模拟上传失败"
                     )
+                addEventLog(
+                    eventName = eventName,
+                    result = "Error"
+                )
 
             } else {
 
@@ -40,7 +50,20 @@ class EventMonitorViewModel: ViewModel() {
                     EventMonitorUiState.Success(
                         "$eventName 上传成功"
                     )
+
+                addEventLog(
+                    eventName = eventName,
+                    result = "Success"
+                )
             }
         }
+    }
+
+    private fun addEventLog(
+        eventName: String,
+        result: String
+    ) {
+        val newItem = EventLogItem(id = System.currentTimeMillis(), eventName = eventName, result = result)
+        _eventLogs.value = _eventLogs.value + newItem
     }
 }

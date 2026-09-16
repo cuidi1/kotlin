@@ -8,6 +8,7 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sdkstudydemo.R
 import com.example.sdkstudydemo.databinding.ActivityEventMonitorBinding
 
@@ -21,6 +22,7 @@ class EventMonitorActivity :
     private val viewModel: EventMonitorViewModel by viewModels()
 
     private var currentState: EventMonitorUiState = EventMonitorUiState.Idle
+    private val eventLogAdapter = EventLogAdapter()
 
     override fun onCreate(
         savedInstanceState: Bundle?
@@ -34,13 +36,12 @@ class EventMonitorActivity :
 //        ↓
 //        把root交给Activity显示
         binding = ActivityEventMonitorBinding.inflate(layoutInflater)
+        setupRecyclerView()
         setContentView(binding.root)
-
         setupInput()
-
         setupClick()
-
         observeState()
+        observeEventLogs()
     }
 
     private fun setupInput() {
@@ -49,29 +50,21 @@ class EventMonitorActivity :
                 updateUploadButton()
             }
     }
-
+    private fun setupRecyclerView() {
+        binding.rvEventLogs.layoutManager = LinearLayoutManager(this)
+        binding.rvEventLogs.adapter = eventLogAdapter
+    }
     private fun setupClick() {
 
         binding.btnUpload.setOnClickListener {
-
-                val eventName =
-                    binding.etEventName.text
-                        .toString()
-                        .trim()
-
+                val eventName = binding.etEventName.text.toString().trim()
                 if (eventName.isBlank()) {
-
-                    binding.etEventName.error =
-                        getString(
+                    binding.etEventName.error = getString(
                             R.string.event_name_required
                         )
-
                     return@setOnClickListener
                 }
-
-                viewModel.upload(
-                    eventName
-                )
+                viewModel.upload(eventName)
             }
     }
 
@@ -91,7 +84,21 @@ class EventMonitorActivity :
             }
         }
     }
+    private fun observeEventLogs() {
 
+        lifecycleScope.launch {
+
+            repeatOnLifecycle(
+                Lifecycle.State.STARTED
+            ) {
+
+                viewModel.eventLogs.collect { logs ->
+
+                    eventLogAdapter.submitList(logs)
+                }
+            }
+        }
+    }
     private fun render(
         state: EventMonitorUiState
     ) {
