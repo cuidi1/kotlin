@@ -11,6 +11,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sdkstudydemo.R
 import com.example.sdkstudydemo.databinding.ActivityEventMonitorBinding
+import com.example.sdkstudydemo.network.DeviceJsonDemo
 
 import kotlinx.coroutines.launch
 
@@ -42,6 +43,7 @@ class EventMonitorActivity :
         setupClick()
         observeState()
         observeEventLogs()
+        DeviceJsonDemo.run()
     }
 
     private fun setupInput() {

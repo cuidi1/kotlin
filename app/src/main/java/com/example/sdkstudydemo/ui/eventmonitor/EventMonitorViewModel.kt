@@ -2,10 +2,12 @@ package com.example.sdkstudydemo.ui.eventmonitor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sdkstudydemo.network.RetrofitProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.Retrofit
 
 class EventMonitorViewModel: ViewModel() {
     //一个事件状态的stateflow
@@ -24,38 +26,27 @@ class EventMonitorViewModel: ViewModel() {
             _uiState.value =
                 EventMonitorUiState.Loading
 
-            // 2. 暂时模拟网络请求
-            delay(1500)
+           try {
+               val todo = RetrofitProvider.todoApi.getTodo()
+               _uiState.value = EventMonitorUiState.Success(
+                   "$eventName 请求成功：${todo.title}"
+               )
 
-            // 3. 为了方便测试：
-            // 输入 fail 就模拟失败
-            if (eventName.equals(
-                    "fail",
-                    ignoreCase = true
-                )
-            ) {
+               addEventLog(
+                   eventName = eventName,
+                   result = "成功：${todo.title}"
+               )
+           }catch (e: Exception) {
+               _uiState.value =
+                   EventMonitorUiState.Error(
+                       "请求失败：${e.message}"
+                   )
 
-                _uiState.value =
-                    EventMonitorUiState.Error(
-                        "模拟上传失败"
-                    )
-                addEventLog(
-                    eventName = eventName,
-                    result = "Error"
-                )
-
-            } else {
-
-                _uiState.value =
-                    EventMonitorUiState.Success(
-                        "$eventName 上传成功"
-                    )
-
-                addEventLog(
-                    eventName = eventName,
-                    result = "Success"
-                )
-            }
+               addEventLog(
+                   eventName = eventName,
+                   result = "失败：${e.message}"
+               )
+           }
         }
     }
 
