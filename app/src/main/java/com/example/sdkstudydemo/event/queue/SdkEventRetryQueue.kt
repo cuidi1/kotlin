@@ -3,19 +3,55 @@ package com.example.sdkstudydemo.event.queue
 import com.example.sdkstudydemo.event.store.SdkPendingEventStore
 import com.example.sdkstudydemo.event.policy.SdkQueueLimitPolicy
 import com.example.sdkstudydemo.event.model.SdkPendingEvent
+import com.example.sdkstudydemo.event.task.PersistTask
 import com.example.sdkstudydemo.sdk.SdkEvent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class SdkEventRetryQueue(
     private val queueLimitPolicy: SdkQueueLimitPolicy,
-    private val pendingEventStore: SdkPendingEventStore
+    private val pendingEventStore: SdkPendingEventStore,
+    private val externalScope: CoroutineScope
 ) {
     private val pendingEvents = mutableListOf<SdkPendingEvent>()
     private val queueMutex = Mutex()
     //是否从DataStore里恢复过
     private var restored = false
 
+    private var version = 0L
+
+    private val persistChannel = Channel<PersistTask>(Channel.UNLIMITED)
+
+    init {
+        startPersistWorker()
+    }
+
+    //一直监听persistChannel
+    private fun startPersistWorker() {
+        externalScope.launch{
+            for (task in persistChannel){
+                pendingEventStore.savePendingEvents(task.events)
+            }
+        }
+    }
+
+    private fun createPersistTaskLocked(): PersistTask{
+        version++
+        return PersistTask(
+            version,
+            pendingEvents.toList()
+        )
+    }
+
+    //把当前队列快照交给后台保存worker
+    private suspend fun sendPersistTask(
+        task:PersistTask
+    ){
+        persistChannel.send(task)
+    }
     private  suspend fun ensureRestoredLocked(){
         if(restored){
             return
@@ -33,7 +69,7 @@ class SdkEventRetryQueue(
         event: SdkEvent,
         errorMessage: String
     ){
-        queueMutex.withLock {
+        val task=queueMutex.withLock {
 //            val pendingEvents = pendingEventStore.loadPendingEvents().toMutableList()
            ensureRestoredLocked()
             if (queueLimitPolicy.shouldRemoveOldest(pendingEvents.size)){
@@ -45,9 +81,10 @@ class SdkEventRetryQueue(
                     lastErrorMessage = errorMessage
                 )
             )
-            persistLocked()
+//            persistLocked()
+            createPersistTaskLocked()
         }
-
+        sendPersistTask(task)
     }
 
     suspend fun getPendingEvents(): List<SdkPendingEvent> {
@@ -71,13 +108,13 @@ class SdkEventRetryQueue(
         pendingEventId:String,
         errorMessage: String
     ){
-        queueMutex.withLock {
+        val task=queueMutex.withLock {
             ensureRestoredLocked()
             val index = pendingEvents.indexOfFirst{
                     pendingEvent -> pendingEvent.id==pendingEventId
             }
             if(index == -1) {
-                return@withLock
+                null
             }
 
             val oldEvent = pendingEvents[index]
@@ -85,7 +122,12 @@ class SdkEventRetryQueue(
                 retryCount = oldEvent.retryCount + 1,
                 lastErrorMessage = errorMessage
             )
-            persistLocked()
+//            persistLocked()
+            createPersistTaskLocked()
+        }
+        if (task!=null){
+            sendPersistTask(task)
+
         }
 
     }
@@ -110,11 +152,13 @@ class SdkEventRetryQueue(
     }
 
     suspend fun removeAllByIds(pendingEventIds: List<String>){
-        queueMutex.withLock {
+        val task=queueMutex.withLock {
             ensureRestoredLocked()
             pendingEvents.removeAll { pendingEvent -> pendingEvent.id in pendingEventIds }
-            persistLocked()
+//            persistLocked()
+            createPersistTaskLocked()
         }
+        sendPersistTask(task)
     }
 
 
